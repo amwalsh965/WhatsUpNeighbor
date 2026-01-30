@@ -1,0 +1,31 @@
+<!-- If you ever use static assets (js, css, images) you must run this at the top of the template-->
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Site{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}"
+</head>
+<body>
+
+    <header>
+        <h1>My Django App</h1>
+    </header>
+
+    <main>
+        <!-- This is django template logic. Minial conditional logic can also be used
+         Any template that inherits from this one has to declare the block content. Doesn't
+         Have to repeat and of the base code-->
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <small>© 2026</small>
+    </footer>
+
+</body>
+</html>

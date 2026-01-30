@@ -1,0 +1,22 @@
+<!-- How to inherit (extend) a different template-->
+{% extends "main/base.html" %}
+
+<!--all blocks in template must be defined here-->
+{% block title %}
+Home
+{% endblock %}
+
+{% block content %}
+    <h2>Welcome!</h2>
+
+    <p>The number passed from the view is:</p>
+    <!-- How to use info passed from view context-->
+    <h3>{{ number }}</h3>
+
+    <!-- How to use conditional logic in template -->
+    {% if number > 10 %}
+        <p>That’s a pretty big number</p>
+    {% else %}
+        <p>That’s a small number</p>
+    {% endif %}
+{% endblock %}
