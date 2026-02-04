@@ -45,3 +45,158 @@ class ExampleModel2(models.Model):
     foreignKeyField = models.ForeignKey(
         "ExampleModel", verbose_name="Example", null=True, on_delete=models.CASCADE
     )
+
+
+class Status(models.TextChoices):
+    OPEN = "open", "Open"
+    IN_PROGRESS = "in_progress", "In Progress"
+    COMPLETED = "completed", "Completed"
+
+
+class TrustFeedback(models.Model):
+
+    class ReturnTimeliness(models.TextChoices):
+        ON_TIME = "on_time", "On Time"
+        LATE = "late", "Late"
+
+    class ItemCondition(models.TextChoices):
+        GOOD = "good", "Good"
+        DAMAGED = "damaged", "Damaged"
+
+    transaction = models.ForeignKey("Transaction", on_delete=models.CASCADE)
+    lender = models.ForeignKey("User", verbose_name="Lender", on_delete=models.CASCADE)
+    borrower = models.ForeignKey(
+        "User", verbose_name="Borrower", on_delete=models.CASCADE
+    )
+    item_returned = models.BooleanField(default=False)
+    return_timeliness = models.CharField(
+        max_length=7, choices=ReturnTimeliness.choices, default=ReturnTimeliness.LATE
+    )
+    item_condition = models.CharField(
+        max_length=7, choices=ItemCondition.choices, default=ItemCondition.DAMAGED
+    )
+    rating_score = models.IntegerField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.pk} {self.transaction} {self.lender} {self.rating_score}"
+
+
+class Transation(models.Model):
+
+    listing = models.ForeignKey("Listing", on_delete=models.CASCADE)
+    lender = models.ForeignKey("Lender", on_delete=models.CASCADE)
+    borrower = models.ForeignKey("Borrower", on_delete=models.CASCADE)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.IN_PROGRESS
+    )
+
+    def __str__(self):
+        return f"{self.pk} {self.listing} {self.lender} {self.borrower}"
+
+
+class User(models.Model):
+
+    class Role(models.TextChoices):
+        ADMIN = "admin", "Admin"
+        NEIGHBOR = "neighbor", "Neighbor"
+
+    first_name = models.CharField(max_length=25, blank=False, null=False)
+    last_name = models.CharField(max_length=25, blank=False, null=False)
+    address = models.CharField(max_length=255, blank=False, null=False)
+    neighborhood = models.ForeignKey("Neighborhood", on_delete=models.CASCADE)
+    photo_url = models.TextField()
+    user_bio = models.TextField()
+    role = models.CharField(max_length=8, choices=Role.choices, default=Role.NEIGHBOR)
+    trust_rating = models.DecimalField(max_digits=2, decimal_places=1)
+    trust_total_transactions = models.IntegerField(default=0, blank=False, null=False)
+    trust_returns_missing = models.IntegerField(default=0, blank=False, null=False)
+    trust_damaged_count = models.IntegerField(default=0, blank=False, null=False)
+    trust_late_count = models.IntegerField(default=0, blank=False, null=False)
+    trust_last_updated = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.pk} {self.first_name}"
+
+
+class Neighborhood(models.Model):
+    neighborhood_name = models.CharField(max_length=100)
+    neighborhood_zip = models.CharField(max_length=10)
+
+    def __str__(self):
+        return f"{self.pk} {self.neighborhood_name}"
+
+
+class Listing(models.Model):
+    class Type(models.TextChoices):
+        OFFER = "offer", "Offer"
+        REQUEST = "request", "Request"
+
+    EXTRA_STATUS_CHOICES = Status.choices + [
+        ("unavailable", "Unavailable"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    type = models.CharField(max_length=7, choices=Type.choices, default=Type.REQUEST)
+    item = models.ForeignKey("Item", on_delete=models.CASCADE)
+    skill = models.ForeignKey("Skill", on_delete=models.CASCADE)
+    title = models.CharField(max_length=150)
+    listing_bio = models.TextField()
+    status = models.CharField(
+        max_length=15, choices=EXTRA_STATUS_CHOICES, default=Status.OPEN
+    )
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    image_url = models.TextField()
+    neighborhood = models.ForeignKey(Neighborhood, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.pk}"
+
+
+class Chat(models.Model):
+
+    class ChatStatus(models.TextChoices):
+        ACTIVE = "active", "Active"
+        PENDING = "pending", "Pending"
+        ARCHIVED = "archived", "Archived"
+
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    transaction = models.ForeignKey(Transation, on_delete=models.CASCADE)
+    chat_creation = models.DateTimeField(auto_now=True)
+    status = models.CharField(
+        max_length=8, choices=ChatStatus.choices, default=ChatStatus.PENDING
+    )
+
+    def __str__(self):
+        return f"{self.pk}"
+
+
+class Message(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.pk}"
+
+
+class Item(models.Model):
+    item_name = models.CharField(max_length=255)
+    item_bio = models.TextField()
+    category = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.pk}"
+
+
+class Skill(models.Model):
+    skill_name = models.CharField(max_length=255)
+    skill_bio = models.TextField()
+    category = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.pk}"
