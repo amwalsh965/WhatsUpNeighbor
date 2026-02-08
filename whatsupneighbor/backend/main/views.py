@@ -1,6 +1,12 @@
 from django.http import JsonResponse
+from django.shortcuts import render
+from django.utils import timezone
 
 from .view_utils import ExampleCalculations
+
+from .models import TrustFeedback
+
+from assets.scripts.sample_date import import_all_sample_data
 
 
 # funcions can be ran before returning the response in context
@@ -17,3 +23,12 @@ def example_view(request):
     context = {"number": number}
 
     return JsonResponse(context)
+
+
+def test(request):
+
+    import_all_sample_data()
+
+    print("**********************************************")
+    context = {}
+    return render(request, "main/index.html", context=context)

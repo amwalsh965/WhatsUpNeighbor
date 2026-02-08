@@ -1,3 +1,4 @@
+from django import forms
 from django.db import models
 
 # Create your models here.
@@ -53,6 +54,7 @@ class Status(models.TextChoices):
     COMPLETED = "completed", "Completed"
 
 
+# For now have foreign keys nullable for testing
 class TrustFeedback(models.Model):
 
     class ReturnTimeliness(models.TextChoices):
@@ -63,10 +65,12 @@ class TrustFeedback(models.Model):
         GOOD = "good", "Good"
         DAMAGED = "damaged", "Damaged"
 
-    transaction = models.ForeignKey("Transaction", on_delete=models.CASCADE)
-    lender = models.ForeignKey("User", verbose_name="Lender", on_delete=models.CASCADE)
-    borrower = models.ForeignKey(
-        "User", verbose_name="Borrower", on_delete=models.CASCADE
+    transaction = models.ForeignKey(
+        "Transaction",
+        related_name="transaction",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
     item_returned = models.BooleanField(default=False)
     return_timeliness = models.CharField(
@@ -82,11 +86,15 @@ class TrustFeedback(models.Model):
         return f"{self.pk} {self.transaction} {self.lender} {self.rating_score}"
 
 
-class Transation(models.Model):
+class Transaction(models.Model):
 
     listing = models.ForeignKey("Listing", on_delete=models.CASCADE)
-    lender = models.ForeignKey("Lender", on_delete=models.CASCADE)
-    borrower = models.ForeignKey("Borrower", on_delete=models.CASCADE)
+    lender = models.ForeignKey(
+        "User", related_name="lending_transaction", on_delete=models.CASCADE
+    )
+    borrower = models.ForeignKey(
+        "User", related_name="borrowing_transaction", on_delete=models.CASCADE
+    )
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     status = models.CharField(
@@ -97,14 +105,19 @@ class Transation(models.Model):
         return f"{self.pk} {self.listing} {self.lender} {self.borrower}"
 
 
+# Might change to form.Forms
 class User(models.Model):
 
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
         NEIGHBOR = "neighbor", "Neighbor"
 
-    first_name = models.CharField(max_length=25, blank=False, null=False)
-    last_name = models.CharField(max_length=25, blank=False, null=False)
+    # username = models.CharField(max_length=30, blank=False, null=False)
+    # password = models.CharField(
+    #     max_length=30, blank=False, null=False, widget=forms.PasswordInput
+    # )
+    f_name = models.CharField(max_length=25, blank=False, null=False)
+    l_name = models.CharField(max_length=25, blank=False, null=False)
     address = models.CharField(max_length=255, blank=False, null=False)
     neighborhood = models.ForeignKey("Neighborhood", on_delete=models.CASCADE)
     photo_url = models.TextField()
@@ -122,11 +135,11 @@ class User(models.Model):
 
 
 class Neighborhood(models.Model):
-    neighborhood_name = models.CharField(max_length=100)
-    neighborhood_zip = models.CharField(max_length=10)
+    name = models.CharField(max_length=100)
+    zip = models.CharField(max_length=10)
 
     def __str__(self):
-        return f"{self.pk} {self.neighborhood_name}"
+        return f"{self.pk} {self.name}"
 
 
 class Listing(models.Model):
@@ -140,8 +153,8 @@ class Listing(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     type = models.CharField(max_length=7, choices=Type.choices, default=Type.REQUEST)
-    item = models.ForeignKey("Item", on_delete=models.CASCADE)
-    skill = models.ForeignKey("Skill", on_delete=models.CASCADE)
+    item = models.ForeignKey("Item", on_delete=models.CASCADE, null=True, blank=True)
+    skill = models.ForeignKey("Skill", on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=150)
     listing_bio = models.TextField()
     status = models.CharField(
@@ -163,8 +176,7 @@ class Chat(models.Model):
         PENDING = "pending", "Pending"
         ARCHIVED = "archived", "Archived"
 
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
-    transaction = models.ForeignKey(Transation, on_delete=models.CASCADE)
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     chat_creation = models.DateTimeField(auto_now=True)
     status = models.CharField(
         max_length=8, choices=ChatStatus.choices, default=ChatStatus.PENDING
@@ -185,8 +197,8 @@ class Message(models.Model):
 
 
 class Item(models.Model):
-    item_name = models.CharField(max_length=255)
-    item_bio = models.TextField()
+    name = models.CharField(max_length=255)
+    bio = models.TextField()
     category = models.CharField(max_length=100)
 
     def __str__(self):
@@ -194,8 +206,8 @@ class Item(models.Model):
 
 
 class Skill(models.Model):
-    skill_name = models.CharField(max_length=255)
-    skill_bio = models.TextField()
+    name = models.CharField(max_length=255)
+    bio = models.TextField()
     category = models.CharField(max_length=100)
 
     def __str__(self):
