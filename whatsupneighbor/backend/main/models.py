@@ -72,6 +72,12 @@ class TrustFeedback(models.Model):
         null=True,
         blank=True,
     )
+    borrower = models.ForeignKey(
+        "User", related_name="borrower_trust", on_delete=models.CASCADE
+    )
+    lender = models.ForeignKey(
+        "User", related_name="lender_trust", on_delete=models.CASCADE
+    )
     item_returned = models.BooleanField(default=False)
     return_timeliness = models.CharField(
         max_length=7, choices=ReturnTimeliness.choices, default=ReturnTimeliness.LATE
@@ -128,10 +134,10 @@ class User(models.Model):
     trust_returns_missing = models.IntegerField(default=0, blank=False, null=False)
     trust_damaged_count = models.IntegerField(default=0, blank=False, null=False)
     trust_late_count = models.IntegerField(default=0, blank=False, null=False)
-    trust_last_updated = models.DateTimeField()
+    trust_last_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.pk} {self.first_name}"
+        return f"{self.pk} {self.f_name}"
 
 
 class Neighborhood(models.Model):
