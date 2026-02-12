@@ -28,20 +28,20 @@ def example_view(request):
 
 def test(request):
 
-    # import_all_sample_data()
+    import_all_sample_data()
 
-    borrower = TrustFeedbackViews(1).borrower
-    lender = TrustFeedbackViews(1).lender
+    # borrower = TrustFeedbackViews(1).borrower
+    # lender = TrustFeedbackViews(1).lender
 
-    TrustFeedbackViews(1).calc_trust_fields(borrower)
-    TrustFeedbackViews(1).calc_trust_fields(lender)
+    # TrustFeedbackViews(1).calc_trust_fields(borrower)
+    # TrustFeedbackViews(1).calc_trust_fields(lender)
 
-    print(
-        f"Borrower Info: {borrower.trust_rating}, {borrower.trust_total_transactions}, {borrower.trust_returns_missing}, {borrower.trust_damaged_count}, {borrower.trust_late_count}, {borrower.trust_last_updated}"
-    )
-    print(
-        f"Lender Info: {lender.trust_rating}, {lender.trust_total_transactions}, {lender.trust_returns_missing}, {lender.trust_damaged_count}, {lender.trust_late_count}, {lender.trust_last_updated}"
-    )
+    # print(
+    #     f"Borrower Info: {borrower.trust_rating}, {borrower.trust_total_transactions}, {borrower.trust_returns_missing}, {borrower.trust_damaged_count}, {borrower.trust_late_count}, {borrower.trust_last_updated}"
+    # )
+    # print(
+    #     f"Lender Info: {lender.trust_rating}, {lender.trust_total_transactions}, {lender.trust_returns_missing}, {lender.trust_damaged_count}, {lender.trust_late_count}, {lender.trust_last_updated}"
+    # )
 
     print("**********************************************")
     context = {}

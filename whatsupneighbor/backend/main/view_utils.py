@@ -25,7 +25,8 @@ class ExampleCalculations:
 
 
 class TransactionViews:
-    pass
+    def __init__(self, pk: int):
+        self.transaction = Transaction.objects.get(pk=pk)
 
 
 class UserViews:
