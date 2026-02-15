@@ -1,4 +1,5 @@
-from django.utils import timezone
+from datetime import timedelta
+from django.utils import timezone 
 from .models import *
 
 
@@ -99,8 +100,53 @@ class TrustFeedbackViews:
 
 
 class ListingViews:
-    pass
+    def __init__(self,pk: int):
+       self.listing = Listing.objects.get(pk=pk)
 
+
+    def create_listing (self, owner: User, title: str, listing_bio: str,  photo_url: str, listing_type: str =Listing.Type.REQUEST, 
+                        item: Item = None, skill: Skill = None, status: str = Status.OPEN):
+        new_listing = Listing.objects.create(
+            user = owner,
+            title=title,
+            listing_bio=listing_bio,
+            image_url = photo_url,
+            type = listing_type,
+            item = item, 
+            skill = skill,
+            start_date = timezone.now(),
+            end_date = timezone.now() + timedelta(days = 7), #end dates are defaulted to 7 days out 
+            status = status, 
+            neighborhood = owner.neighborhood
+)
+        new_listing.save()
+        return new_listing
+    
+    def update_listing(self, title: str = None, listing_bio: str = None, photo_url: str = None, listing_type: str = None, status: str = None,
+                       item: Item = None, skill: Skill = None):
+        if title:
+            self.listing.title = title
+        if listing_bio:
+            self.listing.listing_bio = listing_bio
+        if photo_url:
+            self.listing.image_url = photo_url      
+        if listing_type:    
+            self.listing.type = listing_type
+        if status:
+            self.listing.status = status
+        if item is not None:
+            self.listing.item = item
+        if skill is not None:
+            self.listing.skill = skill
+        
+        
+        self.listing.save()
+        return self.listing
+    
+    def delete_listing(self):
+        self.listing.delete()
+        return True
+    
 
 class NeighborhoodViews:
     pass
