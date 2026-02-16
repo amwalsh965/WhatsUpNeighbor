@@ -1,5 +1,6 @@
 from datetime import timedelta
-from django.utils import timezone 
+from django.utils import timezone
+from pydantic_core import ValidationError 
 from .models import *
 
 
@@ -26,8 +27,104 @@ class ExampleCalculations:
 
 
 class TransactionViews:
+
+    LISTING_UNAVAILABLE = "unavailable"
+
     def __init__(self, pk: int):
         self.transaction = Transaction.objects.get(pk=pk)
+
+    def create_transaction(
+        self,
+        listing: Listing,
+        borrower: User,
+        start_date=None,
+        end_date=None,
+        status: str = Status.IN_PROGRESS,
+    ) -> Transaction:
+        """
+        Creates a new transaction, locks the listing,
+        and creates a chat between the lender and borrower 
+        for the transaction.
+        """
+        if start_date is None:
+            start_date = timezone.now()
+        if end_date is None:
+            end_date = start_date + timedelta(days=1)
+
+        if start_date >= end_date:
+            raise ValidationError("start_date must be before end_date.")
+
+        with Transaction.atomic():
+            locked_listing = Listing.objects.select_for_update().get(pk=listing.pk)
+
+            if locked_listing.status != Status.OPEN:
+                raise ValidationError("Listing is not available.")
+
+            if borrower.pk == locked_listing.user_id:
+                raise ValidationError("Cannot complete a transaction with yourself.")
+
+            # Keeps transactions according to availability
+            if start_date < locked_listing.start_date or end_date > locked_listing.end_date:
+                raise ValidationError("Transaction dates must be within the listing start or end dates.")
+
+            # Locks the selected listing
+            locked_listing.status = self.LISTING_UNAVAILABLE
+            locked_listing.save()
+
+            new_tx = Transaction.objects.create(
+                listing=locked_listing,
+                lender=locked_listing.user,
+                borrower=borrower,
+                start_date=start_date,
+                end_date=end_date,
+                status=status,
+            )
+
+            Chat.objects.create(transaction=new_tx)
+            return new_tx
+
+    def update_transaction(
+        self,
+        start_date=None,
+        end_date=None,
+        status: str = None,
+        borrower: User = None,
+    ) -> Transaction:
+        if start_date is not None:
+            self.transaction.start_date = start_date
+        if end_date is not None:
+            self.transaction.end_date = end_date
+
+        if (start_date is not None) or (end_date is not None):
+            if self.transaction.start_date >= self.transaction.end_date:
+                raise ValidationError("start_date must be before end_date.")
+
+        if status is not None:
+            self.transaction.status = status
+        if borrower is not None:
+            self.transaction.borrower = borrower
+
+        self.transaction.save()
+        return self.transaction
+
+    def complete_transaction(self, acting_user: User) -> Transaction:
+        """
+        Mark transaction completed & unlock listing.
+        """
+        with Transaction.atomic():
+            tx = Transaction.objects.select_for_update().get(pk=self.transaction.pk)
+
+            if tx.status == Status.COMPLETED:
+                self.transaction = tx
+                return tx
+
+            if acting_user.pk not in (tx.lender_id, tx.borrower_id):
+                raise ValidationError("Not authorized to complete this transaction.")
+
+            listing = Listing.objects.select_for_update().get(pk=tx.listing_id)
+
+            tx.status = Status.COMPLETED
+            tx.save()
 
 
 class UserViews:
@@ -59,8 +156,26 @@ class UserViews:
         self.user.save()
         return self.user
 
-    def delete_user(self, user_id):
-        User.objects.delete(user_id)
+    def set_profile(self, photo_url, user_bio):
+        self.user.photo_url = photo_url
+        self.user.user_bio = user_bio
+
+        self.user.save()
+
+    def set_admin(self):
+        self.user.role = "admin"
+
+        self.user.save()
+
+    def set_neighbor(self):
+        self.user.role = "neighbor"
+
+        self.user.save()
+
+    def set_neighborhood(self, neighborhood):
+        self.user.neighborhood = neighborhood
+
+        self.user.save()
 
 
 class TrustFeedbackViews:
@@ -94,7 +209,6 @@ class TrustFeedbackViews:
         user.trust_last_updated = timezone.now()
 
         user.save()
-
 
 class ListingViews:
     def __init__(self,pk: int):
