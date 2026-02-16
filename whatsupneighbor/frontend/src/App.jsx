@@ -138,7 +138,7 @@ function App() {
       <button onClick={getFeedback}>1️⃣ Get One</button>
       <button onClick={updateFeedback}>♻️ Update</button>
       <button onClick={getAllFeedback}>➕ Get All</button>
-      <button onClick={filterByBorrower}>🔍Filter by Borrower</button>
+      <button onClick={filterByBorrower}>🔍 Filter by Borrower</button>
       <button onClick={filterByLender}>🔎 Filter by Lender</button>
 
       <hr />
