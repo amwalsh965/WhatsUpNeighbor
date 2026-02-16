@@ -2,40 +2,51 @@
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+ 
+ 
+  color-scheme: light;
+  color: #0b0f1a;
+  background-color: #ffffff;
+ 
+ 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-a {
+ }
+ 
+ 
+ a {
   font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
-}
-a:hover {
+ }
+ a:hover {
   color: #535bf2;
-}
-
-body {
+ }
+ 
+ 
+ 
+ 
+ body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
   min-height: 100vh;
-}
-
-h1 {
+  background: #ffffff;
+ }
+ 
+ 
+ #root {
+  min-height: 100vh;
+ }
+ 
+ 
+ h1 {
   font-size: 3.2em;
   line-height: 1.1;
-}
-
-button {
+ }
+ 
+ 
+ button {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -45,16 +56,17 @@ button {
   background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
-}
-button:hover {
+ }
+ button:hover {
   border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
+ }
+ button:focus,
+ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+ }
+ 
+ 
+ @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
     background-color: #ffffff;
@@ -65,4 +77,356 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
-}
+ }
+ 
+ 
+ .auth-screen {
+  min-height: 100vh;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: Arial, sans-serif;
+ }
+ 
+ 
+ .auth-card {
+  width: 420px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+ }
+ 
+ 
+ /* app icon */
+ .auth-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  object-fit: cover;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+ }
+ 
+ 
+ /* Labels */
+ .auth-label {
+  width: 100%;
+  max-width: 280px;
+  font-size: 13px;
+  color: #0b0f1a;
+  margin-top: 6px;
+ }
+ 
+ 
+ .auth-input {
+  width: 100%;
+  max-width: 280px;
+  height: 34px;
+  padding: 0 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 2px solid #1f5fff;
+  outline: none;
+ }
+ 
+ 
+ .auth-input::placeholder {
+  color: #a0a0a0;
+ }
+ 
+ 
+ /* buttons */
+ .auth-button {
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  background-color: #0b49d8;
+  color: #ffffff;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+ }
+ 
+ 
+ .auth-button.primary {
+  width: 140px;
+  height: 34px;
+  margin-top: 8px;
+  font-size: 13px;
+ }
+ 
+ 
+ .auth-button.secondary {
+  width: 160px;
+  height: 34px;
+  margin-top: 6px;
+  font-size: 12px;
+ }
+ 
+ 
+ .auth-button:hover {
+  background-color: #083bb5;
+ }
+ 
+ 
+ .auth-button:active {
+  transform: scale(0.98);
+ }
+ 
+ 
+ 
+ 
+ .home-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+ }
+ 
+ 
+ .home-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+ }
+ 
+ 
+ .home-title {
+  font-size: 50px;
+  font-weight: 500;
+  color: #0b49d8;
+  text-align: center;
+  margin: 0;
+ }
+ 
+ 
+ .home-search {
+  width: 260px;
+  height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 2px solid #1f5fff;
+  outline: none;
+ }
+ 
+ 
+ .home-search::placeholder {
+  color: #a0a0a0;
+ }
+ 
+ 
+ /* Bottom nav bar section*/
+ .bottom-nav {
+  height: 72px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 2px solid #1f5fff;
+  background: #ffffff;
+ }
+ 
+ 
+ .nav-item {
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ }
+ 
+ 
+ .nav-item:not(:last-child) {
+  border-right: 2px solid #1f5fff;
+ }
+ 
+ 
+ .nav-item:active {
+  background-color: #f0f4ff;
+ }
+ 
+ 
+ .app-outer {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background: #ffffff;
+ }
+ 
+ 
+ .app-shell {
+  width: 100%;
+  max-width: 420px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+ }
+ 
+ 
+ @media (min-width: 768px) {
+  .app-shell {
+    min-height: 90vh;
+    margin: 24px 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  }
+ }
+ 
+ 
+ .nav-icon {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+ }
+ 
+ 
+ /* signup flow */
+ .sf-screen {
+  min-height: 100vh;
+  background: #ffffff;
+  font-family: Arial, sans-serif;
+ }
+ 
+ 
+ .sf-body {
+  min-height: calc(100vh - 54px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+ }
+ 
+ 
+ /* top bar */
+ .sf-topbar {
+  height: 54px;
+  background: #2bb7ad;
+  display: grid;
+  grid-template-columns: 54px 1fr 54px;
+  align-items: center;
+  color: #ffffff;
+ }
+ 
+ 
+ .sf-topbar-title {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+ }
+ 
+ 
+ .sf-topbar-btn {
+  width: 54px;
+  height: 54px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+ 
+ 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ }
+ 
+ 
+ .sf-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+ }
+ 
+ 
+ .sf-arrow-icon {
+  max-width: 40px;
+  max-height: 40px;
+  width: 300%;
+  height: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+ }
+ 
+ 
+ /* Shared Blocks*/
+ .sf-center {
+  width: 520px;
+  max-width: 92vw;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+ }
+ 
+ 
+ .sf-block {
+  width: 320px;
+  max-width: 90vw;
+ }
+ 
+ 
+ .sf-label {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #111111;
+ }
+ 
+ 
+ .sf-text {
+  font-size: 14px;
+  color: #111111;
+ }
+ 
+ 
+ .sf-spacer-xl {
+  height: 44px;
+ }
+ 
+ 
+ /* Neighborhood radius */
+ 
+ 
+ .sf-radius-btn {
+  width: 160px;
+  height: 30px;
+  border-radius: 6px;
+  border: none;
+  background: #0b49d8;
+  color: #ffffff;
+  font-size: 13px;
+  margin-top: 10px;
+  cursor: pointer;
+ }
+ 
+ 
+ .sf-join-btn {
+  width: 110px;
+  height: 56px;
+  border-radius: 6px;
+  border: none;
+  background: #0b49d8;
+  color: #ffffff;
+  font-size: 13px;
+  margin-top: 12px;
+  cursor: pointer;
+  line-height: 1.1;
+ }
+ 
+ 
+ /* Address entry */
+ 
+ 
+ .sf-input-blue {
+  width: 100%;
+  height: 34px;
+  border-radius: 6px;
+  border: 2px solid #1f5fff;
+ }
