@@ -26,44 +26,41 @@ class ExampleCalculations:
 
 
 class TransactionViews:
-    pass
+    def __init__(self, pk: int):
+        self.transaction = Transaction.objects.get(pk=pk)
 
 
 class UserViews:
-    def __init__(self, pk: int):
+    def __init__(self):
+        self.user = None
+
+    def create_user(self, f_name, l_name, photo_url, user_bio):
+        self.user = User.objects.create()
+
+    def get_user(self, pk):
         self.user = User.objects.get(pk=pk)
 
-    def set_name(self, f_name, l_name):
-        self.user.f_name = f_name
-        self.user.l_name = l_name
+    def update_user(self, **kwargs):
+        ALLOWED_FIELDS = [
+            "f_name",
+            "l_name",
+            "address",
+            "photo_url",
+            "user_bio",
+            "role",
+            "neighborhood",
+        ]
 
+        for field, value in kwargs:
+            if field is not None and field in ALLOWED_FIELDS:
+                if field == "role" and (value != "admin" or value != "neighbor"):
+                    return {"error", "invalid role keyword"}
+                setattr(self.user, field, value)
         self.user.save()
+        return self.user
 
-    def set_address(self, address):
-        self.user.address = address
-
-        self.user.save()
-
-    def set_profile(self, photo_url, user_bio):
-        self.user.photo_url = photo_url
-        self.user.user_bio = user_bio
-
-        self.user.save()
-
-    def set_admin(self):
-        self.user.role = "admin"
-
-        self.user.save()
-
-    def set_neighbor(self):
-        self.user.role = "neighbor"
-
-        self.user.save()
-
-    def set_neighborhood(self, neighborhood):
-        self.user.neighborhood = neighborhood
-
-        self.user.save()
+    def delete_user(self, user_id):
+        User.objects.delete(user_id)
 
 
 class TrustFeedbackViews:

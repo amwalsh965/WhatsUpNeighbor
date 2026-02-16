@@ -9,4 +9,10 @@ urlpatterns = [
     path("", views.example_view, name="home"),
     path("api/example/", views.example_view, name="api-example"),
     path("test/", views.test, name="test"),
+    path("user/", views.user_views),
+    path("user/<int:user_id>/", views.user_views),
+    path("trust_factor/", views.trust_factor_views),
+    path("trust_factor/<int:trust_factor_id>/", views.trust_factor_views),
+    path("listing/", views.listing_views),
+    path("listing/<int:listing_id>/", views.listing_views),
 ]
