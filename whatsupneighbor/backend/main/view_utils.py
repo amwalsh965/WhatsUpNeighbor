@@ -1,5 +1,6 @@
 from datetime import timedelta
 from django.utils import timezone
+from pydantic_core import ValidationError 
 from .models import *
 
 
@@ -26,8 +27,137 @@ class ExampleCalculations:
 
 
 class TransactionViews:
+
+    LISTING_UNAVAILABLE = "unavailable"
+
     def __init__(self, pk: int):
         self.transaction = Transaction.objects.get(pk=pk)
+
+    def create_transaction(
+        self,
+        listing: Listing,
+        borrower: User,
+        start_date=None,
+        end_date=None,
+        status: str = Status.IN_PROGRESS,
+    ) -> Transaction:
+        """
+        Creates a new transaction, locks the listing,
+        and creates a chat between the lender and borrower 
+        for the transaction.
+        """
+        if start_date is None:
+            start_date = timezone.now()
+        if end_date is None:
+            end_date = start_date + timedelta(days=1)
+
+        if start_date >= end_date:
+            raise ValidationError("start_date must be before end_date.")
+
+        with Transaction.atomic():
+            locked_listing = Listing.objects.select_for_update().get(pk=listing.pk)
+
+            if locked_listing.status != Status.OPEN:
+                raise ValidationError("Listing is not available.")
+
+            if borrower.pk == locked_listing.user_id:
+                raise ValidationError("Cannot complete a transaction with yourself.")
+
+            # Keeps transactions according to availability
+            if start_date < locked_listing.start_date or end_date > locked_listing.end_date:
+                raise ValidationError("Transaction dates must be within the listing start or end dates.")
+
+            # Locks the selected listing
+            locked_listing.status = self.LISTING_UNAVAILABLE
+            locked_listing.save()
+
+            new_tx = Transaction.objects.create(
+                listing=locked_listing,
+                lender=locked_listing.user,
+                borrower=borrower,
+                start_date=start_date,
+                end_date=end_date,
+                status=status,
+            )
+
+            Chat.objects.create(transaction=new_tx)
+            return new_tx
+
+    def update_transaction(
+        self,
+        start_date=None,
+        end_date=None,
+        status: str = None,
+        borrower: User = None,
+    ) -> Transaction:
+        if start_date is not None:
+            self.transaction.start_date = start_date
+        if end_date is not None:
+            self.transaction.end_date = end_date
+
+        if (start_date is not None) or (end_date is not None):
+            if self.transaction.start_date >= self.transaction.end_date:
+                raise ValidationError("start_date must be before end_date.")
+
+        if status is not None:
+            self.transaction.status = status
+        if borrower is not None:
+            self.transaction.borrower = borrower
+
+        self.transaction.save()
+        return self.transaction
+
+    def complete_transaction(self, acting_user: User) -> Transaction:
+        """
+        Mark transaction completed & unlock listing.
+        """
+        with Transaction.atomic():
+            tx = Transaction.objects.select_for_update().get(pk=self.transaction.pk)
+
+            if tx.status == Status.COMPLETED:
+                self.transaction = tx
+                return tx
+
+            if acting_user.pk not in (tx.lender_id, tx.borrower_id):
+                raise ValidationError("Not authorized to complete this transaction.")
+
+            listing = Listing.objects.select_for_update().get(pk=tx.listing_id)
+
+            tx.status = Status.COMPLETED
+            tx.save()
+
+
+class UserViews:
+    def __init__(self):
+        self.user = None
+
+    def create_user(self, f_name, l_name, photo_url, user_bio):
+        self.user = User.objects.create()
+
+    def get_user(self, pk):
+        self.user = User.objects.get(pk=pk)
+
+    def update_user(self, **kwargs):
+        ALLOWED_FIELDS = [
+            "f_name",
+            "l_name",
+            "address",
+            "photo_url",
+            "user_bio",
+            "role",
+            "neighborhood",
+        ]
+
+        for field, value in kwargs:
+            if field is not None and field in ALLOWED_FIELDS:
+                if field == "role" and (value != "admin" or value != "neighbor"):
+                    return {"error", "invalid role keyword"}
+                setattr(self.user, field, value)
+        self.user.save()
+        return self.user
+
+    def delete_user(self, user_id):
+        User.objects.delete(user_id)
 
 
 class TrustFeedbackViews:
@@ -37,6 +167,7 @@ class TrustFeedbackViews:
         self.lender: User = self.tfv.lender
         self.borrower: User = self.tfv.borrower
 
+    # Calculating user trust fields for a user
     def calc_trust_fields(self, user: User):
         trust_objs_borrowing = TrustFeedback.objects.filter(borrower_id=user.pk)
         trust_objs_lending = TrustFeedback.objects.filter(lender_id=user.pk)
