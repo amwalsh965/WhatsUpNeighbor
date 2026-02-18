@@ -1,6 +1,8 @@
 import backArrow from "../assets/leftpoint.png";
 import heartIcon from "../assets/heart.png";
 import kayakImg from "../assets/kayak.png";
+import "./../App.css"
+import "./../index.css"
 
 export default function ListingDetailsPage() {
   return (
