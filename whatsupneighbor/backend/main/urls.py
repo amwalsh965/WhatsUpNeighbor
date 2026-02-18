@@ -11,8 +11,8 @@ urlpatterns = [
     path("test/", views.test, name="test"),
     path("user/", views.user_views),
     path("user/<int:user_id>/", views.user_views),
-    path("trust_factor/", views.trust_factor_views),
-    path("trust_factor/<int:trust_factor_id>/", views.trust_factor_views),
-    path("listing/", views.listing_views),
-    path("listing/<int:listing_id>/", views.listing_views),
+    path("trust_feedback/", views.trust_feedback_collection),
+    path("trust_feedback/<int:trust_feedback_id>/", views.trust_feedback_details),
+    # path("listing/", views.listing_views),
+    # path("listing/<int:listing_id>/", views.listing_views),
 ]

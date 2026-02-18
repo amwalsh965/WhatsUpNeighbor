@@ -218,3 +218,26 @@ class Skill(models.Model):
 
     def __str__(self):
         return f"{self.pk}"
+
+
+class SkillUserAssociation(models.Model):
+    skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class ItemUserAssociation(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class Events(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    address = models.CharField(max_length=100)
+    date = models.DateTimeField()
+    host = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class EventUserAssociation(models.Model):
+    event = models.ForeignKey(Events, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)

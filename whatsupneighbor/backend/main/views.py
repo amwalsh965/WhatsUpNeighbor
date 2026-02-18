@@ -123,104 +123,45 @@ def user_views(request, user_id=None):
 
 
 @csrf_exempt
-@require_http_methods(["GET", "POST", "PUT", "DELETE"])
-def trust_factor_views(request, user_id=None):
+@require_http_methods(["GET", "POST"])
+def trust_feedback_collection(request):
     if request.method == "GET":
-        if user_id:
-            try:
-                trust_feedback_obj = TrustFeedback.objects.filter(borrower_id=user_id)
-                return JsonResponse(trust_feedback_obj)
-            except User.DoesNotExist:
-                return JsonResponse({"error": "Not Found"}, status=404)
-        else:
-            users = list(TrustFeedback.objects.all())
-            return JsonResponse(users, safe=False)
+        feedback = list(TrustFeedback.objects.all().values())
+        return JsonResponse(feedback, safe=False)
 
     elif request.method == "POST":
         data = json.loads(request.body)
-        trust_feedback_utils = TrustFeedbackViews()
-        trust_feedback_utils.create_trust_feedback(
-            f_name=data["f_name"],
-            l_name=data["l_name"],
-            photo_url=data["photo_url"],
-            user_bio=data["user_bio"],
+
+        obj = TrustFeedback.objects.create(
+            transaction_id=data.get("transaction"),
+            borrower_id=data.get("borrower"),
+            lender_id=data.get("lender"),
+            item_returned=data.get("item_returned"),
+            return_timeliness=data.get("return_timeliness"),
+            item_condition=data.get("item_condition"),
+            rating_score=data.get("rating_score"),
         )
-        return JsonResponse({"id": user_utils.user.pk})
 
-    elif request.method == "PUT":
-        if not trust_factor_id:
-            return JsonResponse({"error": "Need user id"}, status=400)
-
-        data = json.loads(request.body)
-        user_utils = UserViews()
-
-        try:
-            user = user_utils.get_user(trust_factor_id)
-        except User.DoesNotExist:
-            return JsonResponse({"error", "User Not Found"}, status=404)
-
-        updated_user = user_utils.update_user(**data)
-
-        return JsonResponse(model_to_dict(updated_user))
-
-    elif request.method == "DELETE":
-        if not trust_factor_id:
-            return JsonResponse({"error": "Need User ID"}, status=400)
-
-        try:
-            user = User.objects.get(pk=trust_factor_id)
-            user.delete()
-        except User.DoesNotExist:
-            return JsonResponse({"error": "User Not Found"}, status=404)
+        return JsonResponse({"id": obj.id})
 
 
 @csrf_exempt
-@require_http_methods(["GET", "POST", "PUT", "DELETE"])
-def listing_views(request, listing_id=None):
-    if request.method == "GET":
-        if listing_id:
-            try:
-                user = User.objects.get(pk=listing_id)
-                return JsonResponse(user)
-            except User.DoesNotExist:
-                return JsonResponse({"error": "Not Found"}, status=404)
-        else:
-            users = list(User.objects.all())
-            return JsonResponse(users, safe=False)
+@require_http_methods(["GET", "PUT"])
+def trust_feedback_details(request, trust_feedback_id):
+    try:
+        obj = TrustFeedback.objects.get(pk=trust_feedback_id)
+    except TrustFeedback.DoesNotExist:
+        return JsonResponse({"error": "Trust Feedback Does Not Exist"}, status=404)
 
-    elif request.method == "POST":
-        data = json.loads(request.body)
-        user_utils = UserViews()
-        user_utils.create_user(
-            f_name=data["f_name"],
-            l_name=data["l_name"],
-            photo_url=data["photo_url"],
-            user_bio=data["user_bio"],
-        )
-        return JsonResponse({"id": user_utils.user.pk})
+    if request.method == "GET":
+        return JsonResponse(model_to_dict(obj))
 
     elif request.method == "PUT":
-        if not listing_id:
-            return JsonResponse({"error": "Need user id"}, status=400)
-
         data = json.loads(request.body)
-        user_utils = UserViews()
 
-        try:
-            user = user_utils.get_user(listing_id)
-        except User.DoesNotExist:
-            return JsonResponse({"error", "User Not Found"}, status=404)
+        for key, value in data.items():
+            if value is not None:
+                setattr(obj, key, value)
 
-        updated_user = user_utils.update_user(**data)
-
-        return JsonResponse(model_to_dict(updated_user))
-
-    elif request.method == "DELETE":
-        if not listing_id:
-            return JsonResponse({"error": "Need User ID"}, status=400)
-
-        try:
-            user = User.objects.get(pk=listing_id)
-            user.delete()
-        except User.DoesNotExist:
-            return JsonResponse({"error": "User Not Found"}, status=404)
+        obj.save()
+        return JsonResponse(model_to_dict(obj))

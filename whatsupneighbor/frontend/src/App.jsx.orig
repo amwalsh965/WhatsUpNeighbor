@@ -1,3 +1,12 @@
+<<<<<<< HEAD
+import EventsPage from "./pages/EventsPage";
+import "./App.css";
+||||||| e27646a
+import React, { useState, useEffect } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
+=======
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Event from "./pages/Event";
@@ -8,10 +17,22 @@ import ListingDetailsPage from "./pages/ListingsDetailsPage";
 import AuthPage from "./pages/AuthPage";
 import SignUpFlow from "./pages/SignUpFlow";
 import Saved from "./pages/Saved";
+>>>>>>> adam
 
-
-//Change Event to EventsPage in import and down below (for Sayman)
 function App() {
+<<<<<<< HEAD
+  return <EventsPage />;
+||||||| e27646a
+  const [number, setNumber] = useState(null)
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/example/').then(res => res.json()).then(data => setNumber(data.number))
+  }, [])
+
+  return (
+    <h1>Number: {number}</h1>
+  )
+=======
   return (
     <Router>
       <Routes>
@@ -27,6 +48,13 @@ function App() {
       </Routes>
     </Router>
   );
+>>>>>>> adam
 }
 
+<<<<<<< HEAD
+export default App;
+||||||| e27646a
 export default App
+=======
+export default App;
+>>>>>>> adam
