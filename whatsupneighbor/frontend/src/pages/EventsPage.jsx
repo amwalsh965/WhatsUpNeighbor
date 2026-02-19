@@ -33,13 +33,16 @@ export default function EventsPage() {
       {/* ===== TOP BAR ===== */}
       <div className="topbar">
 
-        <div className="logo-left">
-          🏠 Rae
-        </div>
-
-        <div className="profile-right">
-          👤
-        </div>
+        <a href="/">
+          <div className="logo-left">
+            🏠 Rae
+          </div>
+        </a>
+        <a href="/profile">
+          <div className="profile-right">
+            👤
+          </div>
+        </a>
 
       </div>
 

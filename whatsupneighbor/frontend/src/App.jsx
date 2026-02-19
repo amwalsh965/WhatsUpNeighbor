@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-import Event from "./pages/EventPage";
+import EventsPage from "./pages/EventsPage";
 import Login from "./pages/Login";
 import Message from "./pages/Message";
 import Profile from "./pages/Profile";
@@ -8,6 +8,7 @@ import ListingDetailsPage from "./pages/ListingsDetailsPage";
 import AuthPage from "./pages/AuthPage";
 import SignUpFlow from "./pages/SignUpFlow";
 import Saved from "./pages/Saved";
+import TrustFeedback from "./pages/TrustFeedback";
 
 
 //Change Event to EventsPage in import and down below (for Sayman)
@@ -24,6 +25,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/messages" element={<Message />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/trust-feedback" element={<TrustFeedback />} />
       </Routes>
     </Router>
   );

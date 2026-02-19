@@ -148,6 +148,7 @@ class Neighborhood(models.Model):
         return f"{self.pk} {self.name}"
 
 
+# Adam
 class Listing(models.Model):
     class Type(models.TextChoices):
         OFFER = "offer", "Offer"
@@ -202,6 +203,7 @@ class Message(models.Model):
         return f"{self.pk}"
 
 
+# Adam Start
 class Item(models.Model):
     name = models.CharField(max_length=255)
     bio = models.TextField()
@@ -241,3 +243,6 @@ class Events(models.Model):
 class EventUserAssociation(models.Model):
     event = models.ForeignKey(Events, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+# Adam End

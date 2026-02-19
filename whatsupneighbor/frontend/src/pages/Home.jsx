@@ -50,18 +50,18 @@ export default function HomeScreen() {
       </div>
 
       <nav className="bottom-nav">
-        <button className="nav-item">
+        <a className="nav-item btn" href="./events">
           <img className="nav-icon" src={calIcon} alt="" />
-        </button>
-        <button className="nav-item">
+        </a>
+        <a className="nav-item btn" href="./saved">
           <img className="nav-icon" src={heartIcon} alt="" />
-        </button>
-        <button className="nav-item">
+        </a>
+        <a className="nav-item btn" href="./messages">
           <img className="nav-icon" src={chatIcon} alt="" />
-        </button>
-        <button className="nav-item">
+        </a>
+        <a className="nav-item btn" href="./profile">
           <img className="nav-icon" src={userIcon} alt="" />
-        </button>
+        </a>
       </nav>
     </div>
   );
