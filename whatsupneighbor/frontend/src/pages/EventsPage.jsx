@@ -14,7 +14,7 @@ export default function EventsPage() {
     "Workshop", "Festival", "Fundraiser", "Networking",
     "Food Drive", "Art Show", "Farmers Market",
     "Yoga Session", "Book Club", "Music Night",
-    "Tech Meetup", "Outdoor Movie", "Charity Run"
+    "Tech Meetup", "Outdoor Movie", "Charity Run", "Block party :)", "Birthday Party"
   ];
 
   const locations = [
