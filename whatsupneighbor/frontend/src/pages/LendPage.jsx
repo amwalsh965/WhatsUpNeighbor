@@ -55,110 +55,121 @@ export default function LendPage() {
         <h1>Lend an Item</h1>
 
         <div className="hero-links">
-          <NavLink
-            to="/events"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
+          <NavLink to="/events" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
             Events
           </NavLink>
 
-          <NavLink
-            to="/borrow"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
+          <NavLink to="/borrow" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
             Borrow
           </NavLink>
 
-          <NavLink
-            to="/lend"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
+          <NavLink to="/lend" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
             Lend
           </NavLink>
 
-          <span className="connect-text">Connect</span>
+          <NavLink
+  to="/connect"
+  className={({ isActive }) =>
+    isActive ? "nav-link active" : "nav-link"
+  }
+>
+  Connect
+</NavLink>
         </div>
       </div>
 
-      {/* ===== POST ITEM FORM ===== */}
-      <h2 className="section-title">Post a New Item</h2>
+      {/* ===== MAIN CONTENT WRAPPER ===== */}
+      <div className="lend-container">
 
-      <form className="lend-form" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Item Name"
-          value={formData.name}
-          onChange={(e) =>
-            setFormData({ ...formData, name: e.target.value })
-          }
-        />
+        {/* ===== POST ITEM CARD ===== */}
+        <div className="lend-section">
+          <h2>Post a New Item</h2>
 
-        <input
-          type="text"
-          placeholder="Category (Tools, Electronics...)"
-          value={formData.category}
-          onChange={(e) =>
-            setFormData({ ...formData, category: e.target.value })
-          }
-        />
+          <form className="lend-form" onSubmit={handleSubmit}>
+            <input
+              type="text"
+              placeholder="Item Name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+            />
 
-        <textarea
-          placeholder="Description"
-          rows="3"
-          value={formData.description}
-          onChange={(e) =>
-            setFormData({ ...formData, description: e.target.value })
-          }
-        />
+            <input
+              type="text"
+              placeholder="Category (Tools, Electronics...)"
+              value={formData.category}
+              onChange={(e) =>
+                setFormData({ ...formData, category: e.target.value })
+              }
+            />
 
-        <button type="submit">Post Item</button>
-      </form>
+            <textarea
+              placeholder="Description"
+              rows="3"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+            />
 
-      {/* ===== MY LISTED ITEMS ===== */}
-      <h2 className="section-title">My Listed Items</h2>
+            <button type="submit" className="primary-btn">
+              Post Item
+            </button>
+          </form>
+        </div>
 
-      {myItems.length === 0 && (
-        <p style={{ marginTop: "10px" }}>
-          You haven't posted anything yet.
-        </p>
-      )}
+        {/* ===== MY LISTED ITEMS CARD ===== */}
+        <div className="lend-section">
+          <h2>My Listed Items</h2>
 
-      <div className="lend-grid">
-        {myItems.map(item => (
-          <div key={item.id} className="lend-card">
-            <div className="event-type">{item.category}</div>
-            <h3>{item.name}</h3>
-            <p>{item.description}</p>
-
-            <span className="status ok">
-              {item.status}
-            </span>
-
-            <div style={{ marginTop: "12px" }}>
-              <button
-                style={{ marginRight: "10px" }}
-                onClick={() => alert("Edit feature coming soon")}
-              >
-                Edit
-              </button>
-
-              <button
-                onClick={() => removeItem(item.id)}
-                style={{ background: "#ff6b6b" }}
-              >
-                Remove
-              </button>
+          {myItems.length === 0 ? (
+            <div className="empty-state">
+              <h3>No items posted yet</h3>
+              <p>Your listed items will appear here once you post one.</p>
             </div>
-          </div>
-        ))}
-      </div>
+          ) : (
+            <div className="lend-grid">
+              {myItems.map(item => (
+                <div key={item.id} className="lend-card">
+                  <div className="event-type">{item.category}</div>
+                  <h3>{item.name}</h3>
+                  <p>{item.description}</p>
 
+                  <span className="status ok">
+                    {item.status}
+                  </span>
+
+                  <div style={{ marginTop: "16px" }}>
+                    <button
+                      className="primary-btn"
+                      style={{ marginRight: "10px" }}
+                      onClick={() => alert("Edit feature coming soon")}
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={() => removeItem(item.id)}
+                      style={{
+                        background: "#ff6b6b",
+                        color: "white",
+                        border: "none",
+                        padding: "10px 16px",
+                        borderRadius: "12px",
+                        cursor: "pointer"
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+        </div>
+      </div>
     </div>
   );
 }

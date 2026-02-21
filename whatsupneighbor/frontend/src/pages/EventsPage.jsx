@@ -133,7 +133,15 @@ export default function EventsPage() {
             Lend
           </NavLink>
 
-          <span className="connect-text">Connect</span>
+          <NavLink
+  to="/connect"
+  className={({ isActive }) =>
+    isActive ? "nav-link active" : "nav-link"
+  }
+>
+  Connect
+</NavLink>
+
         </div>
 
         <input

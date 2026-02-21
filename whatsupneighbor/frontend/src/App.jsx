@@ -10,7 +10,7 @@ import AuthPage from "./pages/AuthPage";
 import SignUpFlow from "./pages/SignUpFlow";
 import Saved from "./pages/Saved";
 import LendPage from "./pages/LendPage";
-
+import ConnectPage from "./pages/ConnectPage";
 
 //Change Event to EventsPage in import and down below (for Sayman)
 function App() {
@@ -28,7 +28,8 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/borrow" element={<BorrowPage />} />
         <Route path="/lend" element={<LendPage />} />
-        
+        <Route path="/connect" element={<ConnectPage />} />
+
       </Routes>
     </Router>
   );
