@@ -259,16 +259,63 @@ class ListingViews:
 
 
 class NeighborhoodViews:
-    pass
+    def __init__(self, pk: int):
+        try:
+            self.neighborhood = Neighborhood.objects.get(pk=pk)
+    
+        except Neighborhood.DoesNotExist:
+            self.neighborhood = None
 
+    # get listings for a neighborhood
+    def get_listings(self):
+        return Listing.objects.filter(neighborhood = self.neighborhood.pk)  
+
+    #get users for a neighborhood
+    def get_users(self):
+        return User.objects.filter(neighborhood = self.neighborhood.pk)   
+            
+      
 
 class ChatViews:
-    pass
+    def __init__(self, pk: int):
+        try:
+            self.chat = Chat.objects.get(pk=pk)
+        except Chat.DoesNotExist:
+            self.chat = None
+
+    def transactionChat(transaction_id):
+        return Chat.objects.filter(transaction_id = transaction_id)
+
+    def get_chat(self):
+        return self.chat
 
 
 class MessageViews:
-    pass
+    def __init__(self, pk: int):
+        try:
+            self.message = Message.objects.get(pk=pk)
+        except Message.DoesNotExist:
+            self.message = None
 
+    def create_message(self, chat: Chat, sender: User, content: str, timestamp=None):
+        if timestamp is None:
+            timestamp = timezone.now()
+        new_message = Message.objects.create(
+            chat=chat, sender=sender, content=content, timestamp=timestamp
+        )
+        new_message.save()
+        return new_message
+
+    def update_message(self, content: str):
+        self.message.content = content 
+        self.message.timestamp = timezone.now()
+        self.message.save()
+        return self.message
+    
+    def delete_message(self):
+        self.message.delete()
+        self.message = None
+        return True
 
 class ItemViews:
     pass
