@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
 /* ===== IMPORT LOCAL IMAGES ===== */
@@ -18,13 +18,30 @@ import campingImg from "../assets/campings.png";
 import fishingImg from "../assets/fishingr.png";
 import toolkitImg from "../assets/toolkit.png"; // if this errors, change to "../assets/toolkit.png"
 
+const STORAGE_KEY = "savedItems";
+
+function loadSavedItems() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function BorrowPage() {
   const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
   const [visibleItems, setVisibleItems] = useState(12);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [favorites, setFavorites] = useState([]);
+
+  // favorites now comes from localStorage so Saved page can see it
+  const [favorites, setFavorites] = useState(() => {
+    const saved = loadSavedItems();
+    return saved.map((x) => x.id);
+  });
 
   const categories = ["Tools", "Electronics", "Outdoor", "Sports", "Home", "Automotive"];
 
@@ -47,26 +64,21 @@ export default function BorrowPage() {
 
   /* ===== IMAGE MAP ===== */
   const imageMap = {
-    "Ladder": ladderImg,
+    Ladder: ladderImg,
     "Power Drill": powerDrillImg,
-    "Projector": projectorImg,
-    "Tent": tentImg,
-    "Bike": bikeImg,
-    "Generator": generatorImg,
-    "Camera": cameraImg,
-    "Grill": grillImg,
+    Projector: projectorImg,
+    Tent: tentImg,
+    Bike: bikeImg,
+    Generator: generatorImg,
+    Camera: cameraImg,
+    Grill: grillImg,
     "Snow Blower": snowImg,
     "Pressure Washer": pressureImg,
-    "Kayak": kayakImg,
-    "Speakers": speakerImg,
+    Kayak: kayakImg,
+    Speakers: speakerImg,
     "Camping Stove": campingImg,
     "Fishing Rod": fishingImg,
     "Tool Kit": toolkitImg,
-  };
-
-  /* ===== FAVORITE TOGGLE ===== */
-  const toggleFavorite = (id) => {
-    setFavorites((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
   /* ===== GENERATE 500 ITEMS ===== */
@@ -77,16 +89,48 @@ export default function BorrowPage() {
         return {
           id: i + 1,
           baseName,
-          name: `${baseName} ${i + 1}`,
+          title: `${baseName} ${i + 1}`, // for Saved page
+          name: `${baseName} ${i + 1}`,  // keep your UI the same
           owner: owners[i % owners.length],
           category: categories[i % categories.length],
           status: i % 4 === 0 ? "Borrowed" : "Available",
           description: descriptions[i % descriptions.length],
-          image: imageMap[baseName],
+          imageUrl: imageMap[baseName], // for Saved page
+          image: imageMap[baseName],    // keep your UI the same
         };
       }),
     []
   );
+
+  // keep favorites in sync if localStorage changes (optional but nice)
+  useEffect(() => {
+    const saved = loadSavedItems();
+    setFavorites(saved.map((x) => x.id));
+  }, []);
+
+  /* ===== SAVE/UNSAVE (writes to localStorage) ===== */
+  const toggleFavorite = (item) => {
+    const current = loadSavedItems();
+    const alreadySaved = current.some((x) => x.id === item.id);
+
+    const next = alreadySaved
+      ? current.filter((x) => x.id !== item.id)
+      : [
+          ...current,
+          {
+            id: item.id,
+            title: item.title ?? item.name,
+            owner: item.owner,
+            category: item.category,
+            description: item.description,
+            status: (item.status || "").toLowerCase() === "available" ? "available" : "borrowed",
+            imageUrl: item.imageUrl ?? item.image,
+          },
+        ];
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    setFavorites(next.map((x) => x.id));
+  };
 
   const filteredItems = items.filter(
     (item) =>
@@ -125,13 +169,11 @@ export default function BorrowPage() {
           </NavLink>
 
           <NavLink
-  to="/connect"
-  className={({ isActive }) =>
-    isActive ? "nav-link active" : "nav-link"
-  }
->
-  Connect
-</NavLink>
+            to="/connect"
+            className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+          >
+            Connect
+          </NavLink>
         </div>
 
         <input
@@ -151,13 +193,13 @@ export default function BorrowPage() {
 
           return (
             <div key={item.id} className="lend-card">
-              {/* Heart ONLY inside the card */}
+              {/* Heart saves to localStorage so /saved shows it */}
               <button
                 type="button"
                 className={`favorite-btn ${isFav ? "active" : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleFavorite(item.id);
+                  toggleFavorite(item);
                 }}
                 aria-label="Favorite"
                 title="Favorite"
@@ -174,7 +216,9 @@ export default function BorrowPage() {
               </p>
               <p>{item.description}</p>
 
-              <span className={`status ${item.status === "Available" ? "ok" : "busy"}`}>{item.status}</span>
+              <span className={`status ${item.status === "Available" ? "ok" : "busy"}`}>
+                {item.status}
+              </span>
 
               <button disabled={item.status === "Borrowed"} onClick={() => setSelectedItem(item)}>
                 {item.status === "Borrowed" ? "Unavailable" : "Request Item"}

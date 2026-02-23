@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// Bottom nav icons
+import calIcon from "../assets/calendar.png";
+import heartIcon from "../assets/heart.png";
+import chatIcon from "../assets/speech-bubble.png";
+import userIcon from "../assets/avatar-icon.png";
+
 const users = [
   {
     id: 0,
@@ -124,9 +130,7 @@ export default function Message() {
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const sortedUsers = [...users].sort(
-    (a, b) => b.timestamp - a.timestamp
-  );
+  const sortedUsers = [...users].sort((a, b) => b.timestamp - a.timestamp);
 
   const filteredUsers = sortedUsers.filter((user) =>
     user.name.toLowerCase().includes(search.toLowerCase())
@@ -146,21 +150,20 @@ export default function Message() {
   return (
     <div className="messages-container">
 
+      {/* EXISTING CONTENT */}
       <div className="topbar">
         <div className="logo-left" onClick={() => navigate("/")}>
           🏠 Rae
         </div>
-        <div className="profile-right">👤</div>
+        <div className="profile-right" onClick={() => navigate("/profile")}>
+          👤
+        </div>
       </div>
 
       {selectedUser ? (
         <div className="chat-container">
-
           <div className="chat-header">
-            <button
-              className="back-btn"
-              onClick={() => setSelectedUser(null)}
-            >
+            <button className="back-btn" onClick={() => setSelectedUser(null)}>
               ←
             </button>
             {selectedUser.name}
@@ -170,14 +173,10 @@ export default function Message() {
             {selectedUser.chat.map((msg, index) => (
               <div
                 key={index}
-                className={`chat-bubble ${
-                  msg.from === "You" ? "me" : ""
-                }`}
+                className={`chat-bubble ${msg.from === "You" ? "me" : ""}`}
               >
                 {selectedUser.isGroup && (
-                  <div className="group-name">
-                    {msg.from}
-                  </div>
+                  <div className="group-name">{msg.from}</div>
                 )}
                 {msg.text}
               </div>
@@ -188,7 +187,6 @@ export default function Message() {
             <input placeholder="Type a message..." />
             <button>Send</button>
           </div>
-
         </div>
       ) : (
         <>
@@ -220,29 +218,42 @@ export default function Message() {
 
                 <div className="message-content">
                   <div className="message-top">
-                    <span className="message-name">
-                      {user.name}
-                    </span>
+                    <span className="message-name">{user.name}</span>
                     <span className="message-time">
                       {formatTime(user.timestamp)}
                     </span>
                   </div>
 
-                  <div className="message-preview">
-                    {user.message}
-                  </div>
+                  <div className="message-preview">{user.message}</div>
                 </div>
 
                 {user.unread > 0 && (
-                  <div className="unread-badge">
-                    {user.unread}
-                  </div>
+                  <div className="unread-badge">{user.unread}</div>
                 )}
               </div>
             ))}
           </div>
         </>
       )}
+
+      {/* ✅ Bottom Navigation */}
+      <nav className="bottom-nav">
+        <button className="nav-item" onClick={() => navigate("/events")}>
+          <img className="nav-icon" src={calIcon} alt="Events" />
+        </button>
+
+        <button className="nav-item" onClick={() => navigate("/saved")}>
+          <img className="nav-icon" src={heartIcon} alt="Saved" />
+        </button>
+
+        <button className="nav-item" onClick={() => navigate("/messages")}>
+          <img className="nav-icon" src={chatIcon} alt="Messages" />
+        </button>
+
+        <button className="nav-item" onClick={() => navigate("/profile")}>
+          <img className="nav-icon" src={userIcon} alt="Profile" />
+        </button>
+      </nav>
     </div>
   );
 }
