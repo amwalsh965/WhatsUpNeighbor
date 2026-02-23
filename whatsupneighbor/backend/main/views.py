@@ -4,13 +4,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
 
-from django.shortcuts import render
 from django.utils import timezone
 
 from .view_utils import ExampleCalculations
+from datetime import datetime
 
-from .models import TrustFeedback
+from .models import TrustFeedback, User, ItemUserAssociation, SkillUserAssociation, Listing
 from .view_utils import *
+from django.shortcuts import render, get_object_or_404 #added a new import
 
 from assets.scripts.sample_date import import_all_sample_data
 
@@ -165,3 +166,153 @@ def trust_feedback_details(request, trust_feedback_id):
 
         obj.save()
         return JsonResponse(model_to_dict(obj))
+
+def _compute_listing_availability(status, start_date, end_date, today):
+    """
+    Business rule (simple and predictable):
+    - available if status == "active" AND today is within [start_date, end_date]
+    - if start/end are null, treat as open-ended
+    """
+    start_ok = (start_date is None) or (start_date <= today)
+    end_ok = (end_date is None) or (end_date >= today)
+    in_window = start_ok and end_ok
+    is_active = (status == "active")
+
+    is_available_now = bool(is_active and in_window)
+
+    if not is_active:
+        return {"is_available_now": False, "signal": "red", "reason": f"Not active (status={status})"}
+    if not in_window:
+        return {"is_available_now": False, "signal": "red", "reason": "Outside date window"}
+    return {"is_available_now": True, "signal": "green", "reason": "Active and within date window"}
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def user_profile(request, user_id):
+    # Single user record + neighborhood if it exists (remove select_related if no neighborhood FK)
+    user = get_object_or_404(User.objects.select_related("neighborhood"), pk=user_id)
+
+    # Items and skills via association tables
+    items = list(
+        ItemUserAssociation.objects.filter(user_id=user_id)
+        .select_related("item")
+        .values(
+            "item__id",
+            "item__name",
+            "item__category",
+            "item__bio",
+        )
+    )
+
+    skills = list(
+        SkillUserAssociation.objects.filter(user_id=user_id)
+        .select_related("skill")
+        .values(
+            "skill__id",
+            "skill__name",
+            "skill__category",
+            "skill__bio",
+        )
+    )
+
+    # Listings with nested item/skill data so frontend doesn’t need more calls
+    listings = list(
+        Listing.objects.filter(user_id=user_id)
+        .select_related("item", "skill")
+        .values(
+            "id",
+            "type",
+            "title",
+            "status",
+            "start_date",
+            "end_date",
+            "image_url",
+            "item__id",
+            "item__name",
+            "skill__id",
+            "skill__name",
+        )
+    )
+
+    #changing this so it matches Adam's 
+    now = timezone.now()
+    today = now.date()
+
+    # Compute availability per listing + summary stats
+    available_offers = 0
+    active_requests = 0
+
+    # creating backend code for the profile page
+    for l in listings:
+
+        start = l.get("start_date")
+        end = l.get("end_date")
+
+        # If start/end are datetimes, convert to date for your existing function
+        if isinstance(start, datetime):
+            start = start.date()
+        if isinstance(end, datetime):
+            end = end.date()
+
+        l["availability"] = _compute_listing_availability(
+            status=l.get("status"),
+            start_date=start,
+            end_date=end,
+            today=today,
+        )
+
+        # Normalize nested item/skill into objects (cleaner for React)
+        l["item"] = None if l.get("item__id") is None else {"id": l["item__id"], "name": l.get("item__name")}
+        l["skill"] = None if l.get("skill__id") is None else {"id": l["skill__id"], "name": l.get("skill__name")}
+
+        # remove flattened keys (optional but cleaner)
+        l.pop("item__id", None)
+        l.pop("item__name", None)
+        l.pop("skill__id", None)
+        l.pop("skill__name", None)
+
+        if l.get("type") == "offer" and l["availability"]["is_available_now"]:
+            available_offers += 1
+        if l.get("type") == "request" and l.get("status") == "active":
+            active_requests += 1
+
+    overall_signal = "green" if available_offers > 0 else "red"
+
+    payload = {
+        "user": {
+            "id": user.id,
+            "f_name": user.f_name,
+            "l_name": user.l_name,
+            "photo_url": user.photo_url,
+            "user_bio": user.user_bio,
+            "address": getattr(user, "address", None),
+            # include neighborhood only if field exists
+            "neighborhood": (
+                None if getattr(user, "neighborhood", None) is None
+                else {
+                    "id": user.neighborhood.id,
+                    "name": getattr(user.neighborhood, "name", str(user.neighborhood)),
+                }
+            ),
+        },
+        "trust": {
+            "trust_rating": float(user.trust_rating) if getattr(user, "trust_rating", None) is not None else None,
+            "trust_total_transactions": getattr(user, "trust_total_transactions", None),
+            "trust_returns_missing": getattr(user, "trust_returns_missing", None),
+            "trust_damaged_count": getattr(user, "trust_damaged_count", None),
+            "trust_late_count": getattr(user, "trust_late_count", None),
+        },
+        "items": items,
+        "skills": skills,
+        "listings": listings,
+        "computed": {
+            "overall_availability": {
+                "signal": overall_signal,
+                "available_offers_count": available_offers,
+                "active_requests_count": active_requests,
+            }
+        },
+    }
+
+    return JsonResponse(payload, safe=True)
