@@ -2,14 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const users = [
-  // COMMUNITY GROUP CHAT
   {
     id: 0,
     name: "Neighborhood Group",
     message: "Omar: Is everyone coming tonight?",
     timestamp: Date.now() - 1 * 60 * 1000,
     unread: 5,
-    online: true,
     isGroup: true,
     chat: [
       { from: "Omar", text: "Is everyone coming tonight?" },
@@ -17,19 +15,16 @@ const users = [
       { from: "You", text: "I'll join too." },
     ],
   },
-
-  // REGULAR USERS
   {
     id: 1,
     name: "Danielle",
     message: "Is the ladder still available?",
     timestamp: Date.now() - 4 * 60 * 1000,
     unread: 2,
-    online: true,
     chat: [
-      { from: "them", text: "Hi!" },
-      { from: "them", text: "Is the ladder still available?" },
-      { from: "me", text: "Yes it is 👍" },
+      { from: "Danielle", text: "Hi!" },
+      { from: "Danielle", text: "Is the ladder still available?" },
+      { from: "You", text: "Yes it is 👍" },
     ],
   },
   {
@@ -38,90 +33,96 @@ const users = [
     message: "Can I borrow the drill?",
     timestamp: Date.now() - 7 * 60 * 1000,
     unread: 1,
-    online: true,
     chat: [
-      { from: "them", text: "Can I borrow the drill?" },
-      { from: "me", text: "Yes, when do you need it?" },
+      { from: "Michael", text: "Can I borrow the drill?" },
+      { from: "You", text: "Sure, when do you need it?" },
+      { from: "Michael", text: "Tomorrow morning works." },
     ],
   },
   {
     id: 3,
-    name: "Sarah",
-    message: "I'll return it tonight.",
-    timestamp: Date.now() - 32 * 60 * 1000,
-    unread: 0,
-    online: false,
+    name: "Evan",
+    message: "Can you send me the details?",
+    timestamp: Date.now() - 15 * 60 * 1000,
+    unread: 1,
     chat: [
-      { from: "them", text: "I'll return it tonight." },
-      { from: "me", text: "Perfect!" },
+      { from: "Evan", text: "Hey!" },
+      { from: "Evan", text: "Can you send me the details?" },
+      { from: "You", text: "Yes, sending now." },
     ],
   },
   {
     id: 4,
-    name: "Adam",
-    message: "I can pick it up tomorrow.",
-    timestamp: Date.now() - 60 * 60 * 1000,
+    name: "Sayman",
+    message: "I'll check and let you know.",
+    timestamp: Date.now() - 25 * 60 * 1000,
     unread: 0,
-    online: false,
     chat: [
-      { from: "them", text: "I can pick it up tomorrow." },
-      { from: "me", text: "Sounds good." },
+      { from: "Sayman", text: "I'll check and let you know." },
+      { from: "You", text: "No rush 👍" },
     ],
   },
   {
     id: 5,
-    name: "Omar",
-    message: "Is the event still happening?",
-    timestamp: Date.now() - 2 * 60 * 60 * 1000,
-    unread: 3,
-    online: true,
+    name: "Izabela",
+    message: "Thanks again!",
+    timestamp: Date.now() - 45 * 60 * 1000,
+    unread: 0,
     chat: [
-      { from: "them", text: "Is the event still happening?" },
-      { from: "me", text: "Yes, 6pm." },
+      { from: "Izabela", text: "Thanks again!" },
+      { from: "You", text: "You're welcome 😊" },
     ],
   },
   {
     id: 6,
-    name: "Izabela",
-    message: "Thanks again!",
-    timestamp: Date.now() - 24 * 60 * 60 * 1000,
-    unread: 0,
-    online: true,
+    name: "Adam",
+    message: "I'll be there around 6.",
+    timestamp: Date.now() - 2 * 60 * 60 * 1000,
+    unread: 2,
     chat: [
-      { from: "them", text: "Thanks again!" },
-      { from: "me", text: "No problem 😊" },
+      { from: "Adam", text: "I'll be there around 6." },
+      { from: "You", text: "Perfect, see you then." },
     ],
   },
   {
     id: 7,
-    name: "Carlos",
-    message: "Can you send the address?",
+    name: "Sam",
+    message: "Is this still available?",
     timestamp: Date.now() - 3 * 60 * 60 * 1000,
-    unread: 1,
-    online: true,
+    unread: 0,
     chat: [
-      { from: "them", text: "Can you send the address?" },
-      { from: "me", text: "123 Maple Street." },
+      { from: "Sam", text: "Is this still available?" },
+      { from: "You", text: "Yes it is." },
     ],
   },
   {
     id: 8,
-    name: "Lina",
-    message: "I’ll confirm soon.",
+    name: "Olivia",
+    message: "Looks good to me 👍",
     timestamp: Date.now() - 5 * 60 * 60 * 1000,
-    unread: 0,
-    online: false,
+    unread: 1,
     chat: [
-      { from: "them", text: "I’ll confirm soon." },
-      { from: "me", text: "Sounds good." },
+      { from: "Olivia", text: "Looks good to me 👍" },
+      { from: "You", text: "Awesome!" },
+    ],
+  },
+  {
+    id: 9,
+    name: "Sophia",
+    message: "Can we reschedule?",
+    timestamp: Date.now() - 24 * 60 * 60 * 1000,
+    unread: 0,
+    chat: [
+      { from: "Sophia", text: "Can we reschedule?" },
+      { from: "You", text: "Sure, what works for you?" },
     ],
   },
 ];
 
 export default function Message() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
-  const navigate = useNavigate();
 
   const sortedUsers = [...users].sort(
     (a, b) => b.timestamp - a.timestamp
@@ -137,18 +138,17 @@ export default function Message() {
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
+    if (minutes < 60) return `${minutes}m`;
+    if (hours < 24) return `${hours}h`;
+    return `${days}d`;
   };
 
   return (
-    <div className="msg-page">
+    <div className="messages-container">
 
       <div className="topbar">
         <div className="logo-left" onClick={() => navigate("/")}>
-          <span className="home-icon">🏠</span>
-          Rae
+          🏠 Rae
         </div>
         <div className="profile-right">👤</div>
       </div>
@@ -171,11 +171,11 @@ export default function Message() {
               <div
                 key={index}
                 className={`chat-bubble ${
-                  msg.from === "me" ? "me" : ""
+                  msg.from === "You" ? "me" : ""
                 }`}
               >
                 {selectedUser.isGroup && (
-                  <div style={{ fontSize: "11px", fontWeight: "600" }}>
+                  <div className="group-name">
                     {msg.from}
                   </div>
                 )}
@@ -188,19 +188,24 @@ export default function Message() {
             <input placeholder="Type a message..." />
             <button>Send</button>
           </div>
+
         </div>
       ) : (
         <>
-          <h1>Messages</h1>
+          <h1 className="messages-title">Messages</h1>
 
-          <input
-            className="msg-search"
-            placeholder="Search messages..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          <div className="messages-top">
+            <input
+              className="messages-search"
+              placeholder="Search messages..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
 
-          <button className="new-msg-btn">+ New Message</button>
+            <button className="primary-btn new-msg-btn">
+              + New Message
+            </button>
+          </div>
 
           <div className="message-list">
             {filteredUsers.map((user) => (
@@ -213,7 +218,7 @@ export default function Message() {
                   {user.isGroup ? "👥" : user.name[0]}
                 </div>
 
-                <div className="message-info">
+                <div className="message-content">
                   <div className="message-top">
                     <span className="message-name">
                       {user.name}
@@ -222,6 +227,7 @@ export default function Message() {
                       {formatTime(user.timestamp)}
                     </span>
                   </div>
+
                   <div className="message-preview">
                     {user.message}
                   </div>
