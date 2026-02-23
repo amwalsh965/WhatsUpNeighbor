@@ -11,6 +11,7 @@ import SignUpFlow from "./pages/SignUpFlow";
 import Saved from "./pages/Saved";
 import LendPage from "./pages/LendPage";
 import ConnectPage from "./pages/ConnectPage";
+import TrustFeedback from "./pages/TrustFeedback";
 
 //Change Event to EventsPage in import and down below (for Sayman)
 function App() {
@@ -29,6 +30,7 @@ function App() {
         <Route path="/borrow" element={<BorrowPage />} />
         <Route path="/lend" element={<LendPage />} />
         <Route path="/connect" element={<ConnectPage />} />
+        <Route path="/trust-feedback" element={<TrustFeedback />} />
 
       </Routes>
     </Router>

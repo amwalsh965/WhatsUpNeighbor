@@ -99,6 +99,7 @@ export default function EventsPage() {
         <div className="profile-right" onClick={() => navigate("/profile")}>
           👤
         </div>
+
       </div>
 
       {/* ===== HERO ===== */}

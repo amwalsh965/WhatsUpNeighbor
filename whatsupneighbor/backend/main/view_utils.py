@@ -1,29 +1,7 @@
 from datetime import timedelta
 from django.utils import timezone
-from pydantic_core import ValidationError 
+from pydantic_core import ValidationError
 from .models import *
-
-
-# How a class and methods would be used in view_utils. Follows normal python
-class ExampleCalculations:
-    def __init__(self, example: int = 0):
-        self.example_num = example
-
-    def run_example_calculation(self, num):
-
-        # This is how you would create a new object in the database for a model
-        # Automatically increments the PK, can leave fields out that aren't essential
-        example_object = ExampleModel.objects.create(field1="abc", field2=1, field3=0.1)
-
-        # Have to save
-        example_object.save()
-
-        # Fields are stored as attributes of objects. For example, to alter an object, you can just use the . operator
-        example_object.field1 = "def"
-        example_object.save()
-
-        number = example_object.field2 + self.example_num + num
-        return number
 
 
 class TransactionViews:
@@ -43,7 +21,7 @@ class TransactionViews:
     ) -> Transaction:
         """
         Creates a new transaction, locks the listing,
-        and creates a chat between the lender and borrower 
+        and creates a chat between the lender and borrower
         for the transaction.
         """
         if start_date is None:
@@ -64,8 +42,13 @@ class TransactionViews:
                 raise ValidationError("Cannot complete a transaction with yourself.")
 
             # Keeps transactions according to availability
-            if start_date < locked_listing.start_date or end_date > locked_listing.end_date:
-                raise ValidationError("Transaction dates must be within the listing start or end dates.")
+            if (
+                start_date < locked_listing.start_date
+                or end_date > locked_listing.end_date
+            ):
+                raise ValidationError(
+                    "Transaction dates must be within the listing start or end dates."
+                )
 
             # Locks the selected listing
             locked_listing.status = self.LISTING_UNAVAILABLE
@@ -125,39 +108,6 @@ class TransactionViews:
 
             tx.status = Status.COMPLETED
             tx.save()
-
-
-class UserViews:
-    def __init__(self):
-        self.user = None
-
-    def create_user(self, f_name, l_name, photo_url, user_bio):
-        self.user = User.objects.create()
-
-    def get_user(self, pk):
-        self.user = User.objects.get(pk=pk)
-
-    def update_user(self, **kwargs):
-        ALLOWED_FIELDS = [
-            "f_name",
-            "l_name",
-            "address",
-            "photo_url",
-            "user_bio",
-            "role",
-            "neighborhood",
-        ]
-
-        for field, value in kwargs:
-            if field is not None and field in ALLOWED_FIELDS:
-                if field == "role" and (value != "admin" or value != "neighbor"):
-                    return {"error", "invalid role keyword"}
-                setattr(self.user, field, value)
-        self.user.save()
-        return self.user
-
-    def delete_user(self, user_id):
-        User.objects.delete(user_id)
 
 
 class TrustFeedbackViews:
