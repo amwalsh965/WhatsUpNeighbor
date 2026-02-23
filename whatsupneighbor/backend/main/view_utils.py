@@ -262,6 +262,9 @@ class MessageViews:
         self.message.save()
         return self.message
     
+    def get_messages_by_chat(self, chat_id):
+        return Message.objects.filter(chat_id=chat_id).order_by("timestamp")
+
     def delete_message(self):
         self.message.delete()
         self.message = None
