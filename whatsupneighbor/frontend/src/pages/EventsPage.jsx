@@ -186,41 +186,6 @@ export default function EventsPage() {
         </div>
       )}
 
-      {/* ===== BORROW SECTION ===== */}
-      <h2 className="section-title">Recent Borrow & Lend</h2>
-
-      <div className="lend-grid">
-        {filteredItems.slice(0, visibleItems).map(i => (
-          <div key={i.id} className="lend-card">
-            <h3>{i.name}</h3>
-            <p>Owner: {i.owner}</p>
-
-            <span className={`status ${i.status === "Available" ? "ok" : "busy"}`}>
-              {i.status}
-            </span>
-
-            <button
-              className="primary-btn"
-              disabled={i.status === "Borrowed"}
-              onClick={() => navigate("/borrow")}
-            >
-              {i.status === "Borrowed" ? "Unavailable" : "Request Item"}
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {visibleItems < filteredItems.length && (
-        <div style={{ textAlign: "center", margin: "30px 0" }}>
-          <button
-            className="primary-btn"
-            onClick={() => setVisibleItems(prev => prev + 6)}
-          >
-            Load More Items
-          </button>
-        </div>
-      )}
-
     </div>
   );
 }
