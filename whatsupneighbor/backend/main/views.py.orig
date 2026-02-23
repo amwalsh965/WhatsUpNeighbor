@@ -4,20 +4,43 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
 
-from django.shortcuts import render
 from django.utils import timezone
 
+<<<<<<< HEAD
+from .view_utils import ExampleCalculations
 from datetime import datetime
+||||||| 0065600
+from .view_utils import ExampleCalculations
+=======
+>>>>>>> adam
 
-from .models import (
-    TrustFeedback,
-    User,
-    ItemUserAssociation,
-    SkillUserAssociation,
-    Listing,
-)
+from .models import TrustFeedback, User, ItemUserAssociation, SkillUserAssociation, Listing
 from .view_utils import *
-from django.shortcuts import render, get_object_or_404  # added a new import
+from django.shortcuts import render, get_object_or_404 #added a new import
+
+from assets.scripts.sample_date import import_all_sample_data
+
+
+def test(request):
+
+    # import_all_sample_data()
+
+    # borrower = TrustFeedbackViews(1).borrower
+    # lender = TrustFeedbackViews(1).lender
+
+    # TrustFeedbackViews(1).calc_trust_fields(borrower)
+    # TrustFeedbackViews(1).calc_trust_fields(lender)
+
+    # print(
+    #     f"Borrower Info: {borrower.trust_rating}, {borrower.trust_total_transactions}, {borrower.trust_returns_missing}, {borrower.trust_damaged_count}, {borrower.trust_late_count}, {borrower.trust_last_updated}"
+    # )
+    # print(
+    #     f"Lender Info: {lender.trust_rating}, {lender.trust_total_transactions}, {lender.trust_returns_missing}, {lender.trust_damaged_count}, {lender.trust_late_count}, {lender.trust_last_updated}"
+    # )
+
+    print("**********************************************")
+    context = {}
+    return render(request, "main/index.html", context=context)
 
 
 # in frontend would be called by fetch("/users")
@@ -133,7 +156,6 @@ def trust_feedback_details(request, trust_feedback_id):
         obj.save()
         return JsonResponse(model_to_dict(obj))
 
-
 def _compute_listing_availability(status, start_date, end_date, today):
     """
     Business rule (simple and predictable):
@@ -143,27 +165,15 @@ def _compute_listing_availability(status, start_date, end_date, today):
     start_ok = (start_date is None) or (start_date <= today)
     end_ok = (end_date is None) or (end_date >= today)
     in_window = start_ok and end_ok
-    is_active = status == "active"
+    is_active = (status == "active")
 
     is_available_now = bool(is_active and in_window)
 
     if not is_active:
-        return {
-            "is_available_now": False,
-            "signal": "red",
-            "reason": f"Not active (status={status})",
-        }
+        return {"is_available_now": False, "signal": "red", "reason": f"Not active (status={status})"}
     if not in_window:
-        return {
-            "is_available_now": False,
-            "signal": "red",
-            "reason": "Outside date window",
-        }
-    return {
-        "is_available_now": True,
-        "signal": "green",
-        "reason": "Active and within date window",
-    }
+        return {"is_available_now": False, "signal": "red", "reason": "Outside date window"}
+    return {"is_available_now": True, "signal": "green", "reason": "Active and within date window"}
 
 
 @csrf_exempt
@@ -214,7 +224,7 @@ def user_profile(request, user_id):
         )
     )
 
-    # changing this so it matches Adam's
+    #changing this so it matches Adam's 
     now = timezone.now()
     today = now.date()
 
@@ -242,16 +252,8 @@ def user_profile(request, user_id):
         )
 
         # Normalize nested item/skill into objects (cleaner for React)
-        l["item"] = (
-            None
-            if l.get("item__id") is None
-            else {"id": l["item__id"], "name": l.get("item__name")}
-        )
-        l["skill"] = (
-            None
-            if l.get("skill__id") is None
-            else {"id": l["skill__id"], "name": l.get("skill__name")}
-        )
+        l["item"] = None if l.get("item__id") is None else {"id": l["item__id"], "name": l.get("item__name")}
+        l["skill"] = None if l.get("skill__id") is None else {"id": l["skill__id"], "name": l.get("skill__name")}
 
         # remove flattened keys (optional but cleaner)
         l.pop("item__id", None)
@@ -276,8 +278,7 @@ def user_profile(request, user_id):
             "address": getattr(user, "address", None),
             # include neighborhood only if field exists
             "neighborhood": (
-                None
-                if getattr(user, "neighborhood", None) is None
+                None if getattr(user, "neighborhood", None) is None
                 else {
                     "id": user.neighborhood.id,
                     "name": getattr(user.neighborhood, "name", str(user.neighborhood)),
@@ -285,11 +286,7 @@ def user_profile(request, user_id):
             ),
         },
         "trust": {
-            "trust_rating": (
-                float(user.trust_rating)
-                if getattr(user, "trust_rating", None) is not None
-                else None
-            ),
+            "trust_rating": float(user.trust_rating) if getattr(user, "trust_rating", None) is not None else None,
             "trust_total_transactions": getattr(user, "trust_total_transactions", None),
             "trust_returns_missing": getattr(user, "trust_returns_missing", None),
             "trust_damaged_count": getattr(user, "trust_damaged_count", None),
