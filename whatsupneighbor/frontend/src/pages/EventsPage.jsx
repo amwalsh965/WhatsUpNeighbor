@@ -1,95 +1,221 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import SearchBar from "../components/general/SearchBar";
 
 export default function EventsPage() {
-  const [search, setSearch] = useState("");
 
-  const events = [
-    { id: 1, title: "Neighborhood Block Party", type: "Community", date: "Mar 12", location: "Maple St" },
-    { id: 2, title: "Birthday Party", type: "Private", date: "Mar 18", location: "Oak Ave" },
-    { id: 3, title: "Garage Sale", type: "Sale", date: "Mar 22", location: "Multi-home" },
-    { id: 4, title: "Community Cleanup", type: "Volunteer", date: "Mar 25", location: "Central Park" },
-  ];
+  const navigate = useNavigate();
 
-  const items = [
-    { id: 1, name: "Ladder", status: "Available", owner: "Danielle" },
-    { id: 2, name: "Power Drill", status: "Available", owner: "Adam" },
-    { id: 3, name: "Kayak", status: "Borrowed", owner: "Evan" },
-    { id: 4, name: "Camera", status: "Available", owner: "Izabela" },
-  ];
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [visibleEvents, setVisibleEvents] = useState(6);
+  const [loading, setLoading] = useState(true);
 
-  const filteredEvents = events.filter(e =>
-    e.title.toLowerCase().includes(search.toLowerCase()) ||
-    e.type.toLowerCase().includes(search.toLowerCase()) ||
-    e.location.toLowerCase().includes(search.toLowerCase())
-  );
+  /* ===== FETCH EVENTS ===== */
 
-  const filteredItems = items.filter(i =>
-    i.name.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+
+    async function fetchEvents() {
+
+      try {
+
+        const res = await fetch("http://127.0.0.1:8000/main/events/");
+        const data = await res.json();
+
+        const results = data.results || data;
+
+        setEvents(results);
+        setFilteredEvents(results);
+
+      } catch (err) {
+
+        console.error("Error fetching events:", err);
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    }
+
+    fetchEvents();
+
+  }, []);
+
+  /* ===== RESET VISIBLE EVENTS WHEN SEARCH CHANGES ===== */
+
+  useEffect(() => {
+    setVisibleEvents(Math.min(6, filteredEvents.length));
+  }, [filteredEvents]);
+
+  /* ===== HANDLE SEARCH RESULTS ===== */
+
+  const handleSearchResults = useCallback((results) => {
+
+    if (results === null) {
+      setFilteredEvents(events);
+      return;
+    }
+
+    setFilteredEvents(results);
+
+  }, [events]);
+
+  const eventsToRender = filteredEvents.length ? filteredEvents : events;
 
   return (
+
     <div className="events-page">
 
       {/* ===== TOP BAR ===== */}
+
       <div className="topbar">
 
-        <a href="/">
-          <div className="logo-left">
-            🏠 Rae
-          </div>
-        </a>
-        <a href="/profile">
-          <div className="profile-right">
-            👤
-          </div>
-        </a>
+        <div className="logo-left" onClick={() => navigate("/")}>
+          🏠 Rae
+        </div>
+
+        <div className="profile-right" onClick={() => navigate("/profile")}>
+          👤
+        </div>
 
       </div>
+
 
       {/* ===== HERO ===== */}
+
       <div className="events-hero">
+
         <h1>Neighborhood Hub</h1>
-        <p>Events • Borrow • Lend • Connect</p>
 
-        <input
-          className="event-search"
-          placeholder="Search events or items..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
+        <div className="hero-links">
+
+          <NavLink
+            to="/events"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            Events
+          </NavLink>
+
+          <NavLink
+            to="/borrow"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            Borrow
+          </NavLink>
+
+          <NavLink
+            to="/lend"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            Lend
+          </NavLink>
+
+          <NavLink
+            to="/connect"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            Connect
+          </NavLink>
+
+        </div>
+
+        <SearchBar
+          models={["events"]}
+          width="400px"
+          onResults={handleSearchResults}
         />
+
       </div>
 
-      {/* ===== EVENTS ===== */}
-      <h2 className="section-title">Upcoming Events</h2>
 
-      <div className="event-grid">
-        {filteredEvents.map(e => (
-          <div key={e.id} className="event-card">
-            <div className="event-type">{e.type}</div>
-            <h3>{e.title}</h3>
-            <p><b>Date:</b> {e.date}</p>
-            <p><b>Location:</b> {e.location}</p>
-            <button>View Details</button>
+      {/* ===== EVENTS GRID ===== */}
+
+      <h2 className="section-title">Recent Events</h2>
+
+      {loading ? (
+
+        <p style={{ textAlign: "center" }}>
+          Loading events...
+        </p>
+
+      ) : (
+
+        <>
+          <div className="event-grid">
+
+            {eventsToRender
+              .slice(0, visibleEvents)
+              .map((e) => (
+
+                <div key={e.id} className="event-card">
+
+                  <div className="event-type">{e.type}</div>
+
+                  <h3>{e.title}</h3>
+
+                  <p>
+                    <b>Date:</b> {e.date}
+                  </p>
+
+                  <p>
+                    <b>Location:</b> {e.location}
+                  </p>
+
+                  <p>{e.description}</p>
+
+                  <button
+                    className="primary-btn"
+                    onClick={() =>
+                      navigate(`/events/${e.id}`)
+                    }
+                  >
+                    View Details
+                  </button>
+
+                </div>
+
+              ))}
+
           </div>
-        ))}
-      </div>
 
-      {/* ===== BORROW / LEND ===== */}
-      <h2 className="section-title">Borrow & Lend</h2>
 
-      <div className="lend-grid">
-        {filteredItems.map(i => (
-          <div key={i.id} className="lend-card">
-            <h3>{i.name}</h3>
-            <p>Owner: {i.owner}</p>
-            <span className={`status ${i.status === "Available" ? "ok" : "busy"}`}>
-              {i.status}
-            </span>
-            <button>Request Item</button>
-          </div>
-        ))}
-      </div>
+          {visibleEvents < eventsToRender.length && (
+
+            <div
+              style={{
+                textAlign: "center",
+                margin: "30px 0",
+              }}
+            >
+
+              <button
+                className="primary-btn"
+                onClick={() =>
+                  setVisibleEvents((prev) => prev + 6)
+                }
+              >
+                Load More Events
+              </button>
+
+            </div>
+
+          )}
+
+        </>
+
+      )}
 
     </div>
+
   );
 }

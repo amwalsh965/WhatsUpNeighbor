@@ -204,10 +204,19 @@ class Message(models.Model):
 
 
 # Adam Start
+class ItemStatus(models.TextChoices):
+    AVAILABLE = "available", "Available"
+    TAKEN = "taken", "Taken"
+
+
 class Item(models.Model):
     name = models.CharField(max_length=255)
-    bio = models.TextField()
+    description = models.TextField()
     category = models.CharField(max_length=100)
+    status = models.CharField(
+        max_length=50, choices=ItemStatus.choices, default=ItemStatus.AVAILABLE
+    )
+    image = models.ImageField(upload_to="item_images/", blank=True, null=True)
 
     def __str__(self):
         return f"{self.pk}"
@@ -215,8 +224,11 @@ class Item(models.Model):
 
 class Skill(models.Model):
     name = models.CharField(max_length=255)
-    bio = models.TextField()
+    descirption = models.TextField()
     category = models.CharField(max_length=100)
+    status = models.CharField(
+        max_length=50, choices=ItemStatus.choices, default=ItemStatus.AVAILABLE
+    )
 
     def __str__(self):
         return f"{self.pk}"
@@ -233,10 +245,11 @@ class ItemUserAssociation(models.Model):
 
 
 class Events(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField()
-    address = models.CharField(max_length=100)
+    title = models.CharField(max_length=255)
     date = models.DateTimeField()
+    address = models.CharField(max_length=100)
+    description = models.TextField()
+
     host = models.ForeignKey(User, on_delete=models.CASCADE)
 
 

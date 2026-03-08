@@ -5,3 +5,4 @@ env
 .DS_Store
 *node_modules/
 *launch.json
+*db.sqlite3
