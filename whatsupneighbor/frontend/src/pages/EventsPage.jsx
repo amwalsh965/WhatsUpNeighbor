@@ -1,97 +1,76 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import SearchBar from "../components/general/SearchBar";
 
 export default function EventsPage() {
+  const [search, setSearch] = useState("");
+
   const navigate = useNavigate();
 
-  const [search, setSearch] = useState("");
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [visibleEvents, setVisibleEvents] = useState(6);
-  const [visibleItems, setVisibleItems] = useState(6);
+  const [loading, setLoading] = useState(true);
 
-  // ===== EVENT DATA =====
-  const eventTypes = [
-    "Community", "Private", "Sale", "Volunteer", "Sports",
-    "Workshop", "Festival", "Fundraiser", "Networking",
-    "Food Drive", "Art Show", "Farmers Market",
-    "Yoga Session", "Book Club", "Music Night",
-    "Tech Meetup", "Outdoor Movie", "Charity Run", "Block party :)", "Birthday Party"
-  ];
+  /* ===== FETCH EVENTS ===== */
 
-  const locations = [
-    "Maple St", "Oak Ave", "Central Park", "Riverfront",
-    "City Hall", "Community Center", "Lakeside Pavilion",
-    "Sunset Park", "Downtown Plaza", "Library Hall",
-    "Highland Field", "Greenwood Garden", "Pine Street",
-    "Hilltop Terrace", "Westside Court", "North End Park",
-    "Harbor Walk", "Riverside Drive", "Eastwood Center"
-  ];
+  useEffect(() => {
 
-  const eventDescriptions = [
-    "Meet your neighbors and build stronger connections.",
-    "A fun and engaging local experience for all ages.",
-    "Bring friends and family for a memorable evening.",
-    "Support a great cause and make a difference.",
-    "Enjoy food, music, and entertainment.",
-    "Expand your network and learn something new."
-  ];
+    async function fetchEvents() {
 
-  // ===== ITEM DATA =====
-  const itemNames = [
-    "Ladder", "Drill", "Kayak", "Camera", "Tent",
-    "Bike", "Projector", "Table", "Speakers", "Grill",
-    "Snow Blower", "Pressure Washer", "Camping Stove",
-    "Generator", "Power Saw", "Lawn Mower",
-    "Fishing Rod", "Basketball Hoop", "Air Pump",
-    "Extension Cord", "Tool Kit", "Car Jack",
-    "Folding Chairs", "Cooler", "Hedge Trimmer"
-  ];
+      try {
 
-  const owners = [
-    "Danielle", "Adam", "Evan", "Izabela", "Sayman",
-    "Sophia", "Michael", "James", "Olivia", "Noah",
-    "Emma", "Lucas", "Ava", "Mason", "Liam",
-    "Isabella", "Ethan", "Mia", "Harper", "Elijah"
-  ];
+        const res = await fetch("http://127.0.0.1:8000/main/events/");
+        const data = await res.json();
 
-  // ===== GENERATE EVENTS =====
-  const events = useMemo(() =>
-    Array.from({ length: 500 }, (_, i) => ({
-      id: i + 1,
-      title: `${eventTypes[i % eventTypes.length]} Event ${i + 1}`,
-      type: eventTypes[i % eventTypes.length],
-      date: `Mar ${1 + (i % 28)}`,
-      location: locations[i % locations.length],
-      description: eventDescriptions[i % eventDescriptions.length]
-    })), []
-  );
+        const results = data.results || data;
 
-  // ===== GENERATE ITEMS =====
-  const items = useMemo(() =>
-    Array.from({ length: 500 }, (_, i) => ({
-      id: i + 1,
-      name: `${itemNames[i % itemNames.length]} ${i + 1}`,
-      status: i % 4 === 0 ? "Borrowed" : "Available",
-      owner: owners[i % owners.length]
-    })), []
-  );
+        setEvents(results);
+        setFilteredEvents(results);
 
-  // ===== FILTER =====
-  const filteredEvents = events.filter(e =>
-    e.title.toLowerCase().includes(search.toLowerCase()) ||
-    e.type.toLowerCase().includes(search.toLowerCase()) ||
-    e.location.toLowerCase().includes(search.toLowerCase())
-  );
+      } catch (err) {
 
-  const filteredItems = items.filter(i =>
-    i.name.toLowerCase().includes(search.toLowerCase()) ||
-    i.owner.toLowerCase().includes(search.toLowerCase())
-  );
+        console.error("Error fetching events:", err);
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    }
+
+    fetchEvents();
+
+  }, []);
+
+  /* ===== RESET VISIBLE EVENTS WHEN SEARCH CHANGES ===== */
+
+  useEffect(() => {
+    setVisibleEvents(Math.min(6, filteredEvents.length));
+  }, [filteredEvents]);
+
+  /* ===== HANDLE SEARCH RESULTS ===== */
+
+  const handleSearchResults = useCallback((results) => {
+
+    if (results === null) {
+      setFilteredEvents(events);
+      return;
+    }
+
+    setFilteredEvents(results);
+
+  }, [events]);
+
+  const eventsToRender = filteredEvents.length ? filteredEvents : events;
 
   return (
     <div className="events-page">
 
       {/* ===== TOP BAR ===== */}
       <div className="topbar">
+
         <div className="logo-left" onClick={() => navigate("/")}>
           🏠 Rae
         </div>
@@ -105,8 +84,10 @@ export default function EventsPage() {
       {/* ===== HERO ===== */}
       <div className="events-hero">
         <h1>Neighborhood Hub</h1>
+        <p>Events • Borrow • Lend • Connect</p>
 
         <div className="hero-links">
+
           <NavLink
             to="/events"
             className={({ isActive }) =>
@@ -126,7 +107,7 @@ export default function EventsPage() {
           </NavLink>
 
           <NavLink
-            to="/borrow"
+            to="/lend"
             className={({ isActive }) =>
               isActive ? "nav-link active" : "nav-link"
             }
@@ -135,57 +116,105 @@ export default function EventsPage() {
           </NavLink>
 
           <NavLink
-  to="/connect"
-  className={({ isActive }) =>
-    isActive ? "nav-link active" : "nav-link"
-  }
->
-  Connect
-</NavLink>
+            to="/connect"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            Connect
+          </NavLink>
 
         </div>
 
-        <input
-          className="event-search"
-          placeholder="Search events or items..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
+        <SearchBar
+          models={["events"]}
+          width="400px"
+          onResults={handleSearchResults}
         />
+
       </div>
 
-      {/* ===== EVENTS SECTION ===== */}
+      {/* ===== EVENTS ===== */}
+      <h2 className="section-title">Upcoming Events</h2>
+
+      {/* ===== EVENTS GRID ===== */}
+
       <h2 className="section-title">Recent Events</h2>
 
-      <div className="event-grid">
-        {filteredEvents.slice(0, visibleEvents).map(e => (
-          <div key={e.id} className="event-card">
-            <div className="event-type">{e.type}</div>
-            <h3>{e.title}</h3>
-            <p><b>Date:</b> {e.date}</p>
-            <p><b>Location:</b> {e.location}</p>
-            <p>{e.description}</p>
+      {loading ? (
 
-            <button
-              className="primary-btn"
-              onClick={() => navigate(`/events/${e.id}`)}
-            >
-              View Details
-            </button>
+        <p style={{ textAlign: "center" }}>
+          Loading events...
+        </p>
+
+      ) : (
+
+        <>
+          <div className="event-grid">
+
+            {eventsToRender
+              .slice(0, visibleEvents)
+              .map((e) => (
+
+                <div key={e.id} className="event-card">
+
+                  <div className="event-type">{e.type}</div>
+
+                  <h3>{e.title}</h3>
+
+                  <p>
+                    <b>Date:</b> {e.date}
+                  </p>
+
+                  <p>
+                    <b>Location:</b> {e.location}
+                  </p>
+
+                  <p>{e.description}</p>
+
+                  <button
+                    className="primary-btn"
+                    onClick={() =>
+                      navigate(`/events/${e.id}`)
+                    }
+                  >
+                    View Details
+                  </button>
+
+                </div>
+
+              ))}
+
           </div>
-        ))}
-      </div>
 
-      {visibleEvents < filteredEvents.length && (
-        <div style={{ textAlign: "center", margin: "30px 0" }}>
-          <button
-            className="primary-btn"
-            onClick={() => setVisibleEvents(prev => prev + 6)}
-          >
-            Load More Events
-          </button>
-        </div>
+
+          {visibleEvents < eventsToRender.length && (
+
+            <div
+              style={{
+                textAlign: "center",
+                margin: "30px 0",
+              }}
+            >
+
+              <button
+                className="primary-btn"
+                onClick={() =>
+                  setVisibleEvents((prev) => prev + 6)
+                }
+              >
+                Load More Events
+              </button>
+
+            </div>
+
+          )}
+
+        </>
+
       )}
 
     </div>
+
   );
 }

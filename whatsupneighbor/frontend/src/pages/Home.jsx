@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 import calIcon from "../assets/calendar.png";
@@ -6,16 +6,24 @@ import heartIcon from "../assets/heart.png";
 import chatIcon from "../assets/speech-bubble.png";
 import userIcon from "../assets/avatar-icon.png";
 
+import SearchBar from "../components/general/SearchBar";
+
 export default function HomeScreen() {
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
 
-  // Replace later with real data
-  const listings = ["Kayak", "Camera", "Lawn Mower", "Drill"];
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchActive, setSearchActive] = useState(false);
 
-  const filteredListings = listings.filter((item) =>
-    item.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const handleSearchResults = useCallback((results) => {
+    if (results === null) {
+      setSearchActive(false);
+      setSearchResults([]);
+    } else {
+      setSearchActive(true);
+      setSearchResults(results);
+    }
+  }, []);
 
   return (
     <div className="home-screen">
@@ -24,25 +32,25 @@ export default function HomeScreen() {
 
         <div className="home-search-wrap">
           <div className="home-search-card">
-            <input
-              className="home-search-input"
-              placeholder="Search"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+            <SearchBar
+              models = {["events", "items"]}
+              outline={true}
+              width="100%"
+              placeholder="Search for items..."
+              onResults={handleSearchResults}
             />
 
-            {/* Dropdown appears automatically when typing */}
-            {searchText.trim() !== "" && (
+            {searchActive && (
               <div className="home-dropdown">
-                {filteredListings.length > 0 ? (
-                  filteredListings.map((item) => (
+                {searchResults.length > 0 ? (
+                  searchResults.map((item) => (
                     <div
-                      key={item}
+                      key={item.id}
                       className="home-dropdown-item"
-                      onClick={() => navigate("/borrow")}
+                      onClick={() => navigate(`/items/${item.id}`)}
                       style={{ cursor: "pointer" }}
                     >
-                      {item}
+                      {item.name} — {item.category}
                     </div>
                   ))
                 ) : (
@@ -58,39 +66,21 @@ export default function HomeScreen() {
 
       {/* ===== Bottom Navigation ===== */}
       <nav className="bottom-nav">
-
-        {/* Events */}
-        <button
-          className="nav-item"
-          onClick={() => navigate("/events")}
-        >
+        <button className="nav-item" onClick={() => navigate("/events")}>
           <img className="nav-icon" src={calIcon} alt="Events" />
         </button>
 
-        {/* Saved */}
-        <button
-          className="nav-item"
-          onClick={() => navigate("/saved")}
-        >
+        <button className="nav-item" onClick={() => navigate("/saved")}>
           <img className="nav-icon" src={heartIcon} alt="Saved" />
         </button>
 
-        {/* Messages */}
-        <button
-          className="nav-item"
-          onClick={() => navigate("/messages")}
-        >
+        <button className="nav-item" onClick={() => navigate("/messages")}>
           <img className="nav-icon" src={chatIcon} alt="Messages" />
         </button>
 
-        {/* Profile */}
-        <button
-          className="nav-item"
-          onClick={() => navigate("/profile")}
-        >
+        <button className="nav-item" onClick={() => navigate("/profile")}>
           <img className="nav-icon" src={userIcon} alt="Profile" />
         </button>
-
       </nav>
     </div>
   );

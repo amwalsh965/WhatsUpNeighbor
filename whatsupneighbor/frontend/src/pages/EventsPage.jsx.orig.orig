@@ -1,40 +1,27 @@
-<<<<<<< Updated upstream
-import { useState } from "react";
-||||||| Stash base
+<<<<<<< HEAD
 import { useState, useMemo } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+||||||| 8c91616
+import { useState } from "react";
 =======
 import { useState, useEffect, useCallback } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import SearchBar from "../components/general/SearchBar";
->>>>>>> Stashed changes
+>>>>>>> adam
 
 export default function EventsPage() {
-<<<<<<< Updated upstream
-  const [search, setSearch] = useState("");
-||||||| Stash base
+<<<<<<< HEAD
   const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
   const [visibleEvents, setVisibleEvents] = useState(6);
   const [visibleItems, setVisibleItems] = useState(6);
+||||||| 8c91616
+  const [search, setSearch] = useState("");
 =======
-  const navigate = useNavigate();
+>>>>>>> adam
 
-  const [events, setEvents] = useState([]);
-  const [filteredEvents, setFilteredEvents] = useState([]);
-  const [visibleEvents, setVisibleEvents] = useState(6);
-  const [loading, setLoading] = useState(true);
->>>>>>> Stashed changes
-
-<<<<<<< Updated upstream
-  const events = [
-    { id: 1, title: "Neighborhood Block Party", type: "Community", date: "Mar 12", location: "Maple St" },
-    { id: 2, title: "Birthday Party", type: "Private", date: "Mar 18", location: "Oak Ave" },
-    { id: 3, title: "Garage Sale", type: "Sale", date: "Mar 22", location: "Multi-home" },
-    { id: 4, title: "Community Cleanup", type: "Volunteer", date: "Mar 25", location: "Central Park" },
-  ];
-||||||| Stash base
+<<<<<<< HEAD
   // ===== EVENT DATA =====
   const eventTypes = [
     "Community", "Private", "Sale", "Volunteer", "Sports",
@@ -43,31 +30,18 @@ export default function EventsPage() {
     "Yoga Session", "Book Club", "Music Night",
     "Tech Meetup", "Outdoor Movie", "Charity Run", "Block party :)", "Birthday Party"
   ];
-=======
-  useEffect(() => {
-    async function fetchEvents() {
-      try {
-        const res = await fetch("http://127.0.0.1:8000/main/events/");
-        const data = await res.json();
-        const results = data.results || data;
-        setEvents(results);
-        setFilteredEvents(results); // Initialize filteredEvents with all events
-      } catch (err) {
-        console.error("Error fetching events:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
->>>>>>> Stashed changes
-
-<<<<<<< Updated upstream
-  const items = [
-    { id: 1, name: "Ladder", status: "Available", owner: "Danielle" },
-    { id: 2, name: "Power Drill", status: "Available", owner: "Adam" },
-    { id: 3, name: "Kayak", status: "Borrowed", owner: "Evan" },
-    { id: 4, name: "Camera", status: "Available", owner: "Izabela" },
+||||||| 8c91616
+  const events = [
+    { id: 1, title: "Neighborhood Block Party", type: "Community", date: "Mar 12", location: "Maple St" },
+    { id: 2, title: "Birthday Party", type: "Private", date: "Mar 18", location: "Oak Ave" },
+    { id: 3, title: "Garage Sale", type: "Sale", date: "Mar 22", location: "Multi-home" },
+    { id: 4, title: "Community Cleanup", type: "Volunteer", date: "Mar 25", location: "Central Park" },
   ];
-||||||| Stash base
+=======
+  const navigate = useNavigate();
+>>>>>>> adam
+
+<<<<<<< HEAD
   const locations = [
     "Maple St", "Oak Ave", "Central Park", "Riverfront",
     "City Hall", "Community Center", "Lakeside Pavilion",
@@ -76,22 +50,21 @@ export default function EventsPage() {
     "Hilltop Terrace", "Westside Court", "North End Park",
     "Harbor Walk", "Riverside Drive", "Eastwood Center"
   ];
+||||||| 8c91616
+  const items = [
+    { id: 1, name: "Ladder", status: "Available", owner: "Danielle" },
+    { id: 2, name: "Power Drill", status: "Available", owner: "Adam" },
+    { id: 3, name: "Kayak", status: "Borrowed", owner: "Evan" },
+    { id: 4, name: "Camera", status: "Available", owner: "Izabela" },
+  ];
 =======
-    fetchEvents();
-  }, []);
->>>>>>> Stashed changes
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [visibleEvents, setVisibleEvents] = useState(6);
+  const [loading, setLoading] = useState(true);
+>>>>>>> adam
 
-<<<<<<< Updated upstream
-  const filteredEvents = events.filter(e =>
-    e.title.toLowerCase().includes(search.toLowerCase()) ||
-    e.type.toLowerCase().includes(search.toLowerCase()) ||
-    e.location.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const filteredItems = items.filter(i =>
-    i.name.toLowerCase().includes(search.toLowerCase())
-  );
-||||||| Stash base
+<<<<<<< HEAD
   const eventDescriptions = [
     "Meet your neighbors and build stronger connections.",
     "A fun and engaging local experience for all ages.",
@@ -147,35 +120,94 @@ export default function EventsPage() {
     e.type.toLowerCase().includes(search.toLowerCase()) ||
     e.location.toLowerCase().includes(search.toLowerCase())
   );
+||||||| 8c91616
+  const filteredEvents = events.filter(e =>
+    e.title.toLowerCase().includes(search.toLowerCase()) ||
+    e.type.toLowerCase().includes(search.toLowerCase()) ||
+    e.location.toLowerCase().includes(search.toLowerCase())
+  );
+=======
+  /* ===== FETCH EVENTS ===== */
+>>>>>>> adam
 
+<<<<<<< HEAD
   const filteredItems = items.filter(i =>
     i.name.toLowerCase().includes(search.toLowerCase()) ||
     i.owner.toLowerCase().includes(search.toLowerCase())
   );
+||||||| 8c91616
+  const filteredItems = items.filter(i =>
+    i.name.toLowerCase().includes(search.toLowerCase())
+  );
 =======
-  // ===== RESET VISIBLE EVENTS WHEN EVENTS CHANGE =====
+  useEffect(() => {
+
+    async function fetchEvents() {
+
+      try {
+
+        const res = await fetch("http://127.0.0.1:8000/main/events/");
+        const data = await res.json();
+
+        const results = data.results || data;
+
+        setEvents(results);
+        setFilteredEvents(results);
+
+      } catch (err) {
+
+        console.error("Error fetching events:", err);
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    }
+
+    fetchEvents();
+
+  }, []);
+
+  /* ===== RESET VISIBLE EVENTS WHEN SEARCH CHANGES ===== */
+
   useEffect(() => {
     setVisibleEvents(Math.min(6, filteredEvents.length));
   }, [filteredEvents]);
 
-  // ===== HANDLE SEARCH RESULTS =====
-  const handleSearchResults = useCallback((results) => {
-  if (results === null) {
-    setFilteredEvents(events);
-    return;
-  }
-  setFilteredEvents(results);
-}, [events]);
+  /* ===== HANDLE SEARCH RESULTS ===== */
 
-  // Decide which events to render
+  const handleSearchResults = useCallback((results) => {
+
+    if (results === null) {
+      setFilteredEvents(events);
+      return;
+    }
+
+    setFilteredEvents(results);
+
+  }, [events]);
+
   const eventsToRender = filteredEvents.length ? filteredEvents : events;
->>>>>>> Stashed changes
+>>>>>>> adam
 
   return (
-    <div className="events-page">
-      <div className="topbar">
-<<<<<<< Updated upstream
 
+    <div className="events-page">
+
+      {/* ===== TOP BAR ===== */}
+
+      <div className="topbar">
+        <div className="logo-left" onClick={() => navigate("/")}>
+          🏠 Rae
+        </div>
+
+<<<<<<< HEAD
+        <div className="profile-right" onClick={() => navigate("/profile")}>
+          👤
+        </div>
+||||||| 8c91616
         <a href="/">
           <div className="logo-left">
             🏠 Rae
@@ -186,31 +218,25 @@ export default function EventsPage() {
             👤
           </div>
         </a>
-
-||||||| Stash base
-        <div className="logo-left" onClick={() => navigate("/")}>
-          🏠 Rae
-        </div>
-
-        <div className="profile-right" onClick={() => navigate("/profile")}>
-          👤
-        </div>
-
 =======
         <div className="logo-left" onClick={() => navigate("/")}>
           🏠 Rae
         </div>
+
         <div className="profile-right" onClick={() => navigate("/profile")}>
           👤
         </div>
->>>>>>> Stashed changes
+>>>>>>> adam
+
       </div>
 
+
+      {/* ===== HERO ===== */}
+
       <div className="events-hero">
+
         <h1>Neighborhood Hub</h1>
-<<<<<<< Updated upstream
-        <p>Events • Borrow • Lend • Connect</p>
-||||||| Stash base
+<<<<<<< HEAD
 
         <div className="hero-links">
           <NavLink
@@ -250,64 +276,69 @@ export default function EventsPage() {
 </NavLink>
 
         </div>
+||||||| 8c91616
+        <p>Events • Borrow • Lend • Connect</p>
 =======
+>>>>>>> adam
 
         <div className="hero-links">
+
           <NavLink
             to="/events"
-            className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
           >
             Events
           </NavLink>
+
           <NavLink
             to="/borrow"
-            className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
           >
             Borrow
           </NavLink>
+
           <NavLink
             to="/lend"
-            className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
           >
             Lend
           </NavLink>
+
           <NavLink
             to="/connect"
-            className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
           >
             Connect
           </NavLink>
+
         </div>
->>>>>>> Stashed changes
 
         <SearchBar
-          models = {["events"]}
+          models={["events"]}
           width="400px"
-          model="events"
           onResults={handleSearchResults}
         />
+
       </div>
 
-<<<<<<< Updated upstream
-      {/* ===== EVENTS ===== */}
-      <h2 className="section-title">Upcoming Events</h2>
-||||||| Stash base
+<<<<<<< HEAD
       {/* ===== EVENTS SECTION ===== */}
       <h2 className="section-title">Recent Events</h2>
+||||||| 8c91616
+      {/* ===== EVENTS ===== */}
+      <h2 className="section-title">Upcoming Events</h2>
 =======
-      <h2 className="section-title">Recent Events</h2>
->>>>>>> Stashed changes
+>>>>>>> adam
 
-<<<<<<< Updated upstream
-      <div className="event-grid">
-        {filteredEvents.map(e => (
-          <div key={e.id} className="event-card">
-            <div className="event-type">{e.type}</div>
-            <h3>{e.title}</h3>
-            <p><b>Date:</b> {e.date}</p>
-            <p><b>Location:</b> {e.location}</p>
-            <button>View Details</button>
-||||||| Stash base
+<<<<<<< HEAD
       <div className="event-grid">
         {filteredEvents.slice(0, visibleEvents).map(e => (
           <div key={e.id} className="event-card">
@@ -323,32 +354,79 @@ export default function EventsPage() {
             >
               View Details
             </button>
+||||||| 8c91616
+      <div className="event-grid">
+        {filteredEvents.map(e => (
+          <div key={e.id} className="event-card">
+            <div className="event-type">{e.type}</div>
+            <h3>{e.title}</h3>
+            <p><b>Date:</b> {e.date}</p>
+            <p><b>Location:</b> {e.location}</p>
+            <button>View Details</button>
 =======
+      {/* ===== EVENTS GRID ===== */}
+
+      <h2 className="section-title">Recent Events</h2>
+
       {loading ? (
-        <p style={{ textAlign: "center" }}>Loading events...</p>
+
+        <p style={{ textAlign: "center" }}>
+          Loading events...
+        </p>
+
       ) : (
+
         <>
           <div className="event-grid">
-            {eventsToRender.slice(0, visibleEvents).map((e) => (
-              <div key={e.id} className="event-card">
-                <div className="event-type">{e.type}</div>
-                <h3>{e.title}</h3>
-                <p><b>Date:</b> {e.date}</p>
-                <p><b>Location:</b> {e.location}</p>
-                <p>{e.description}</p>
 
-                <button
-                  className="primary-btn"
-                  onClick={() => navigate(`/events/${e.id}`)}
-                >
-                  View Details
-                </button>
-              </div>
-            ))}
->>>>>>> Stashed changes
+            {eventsToRender
+              .slice(0, visibleEvents)
+              .map((e) => (
+
+                <div key={e.id} className="event-card">
+
+                  <div className="event-type">{e.type}</div>
+
+                  <h3>{e.title}</h3>
+
+                  <p>
+                    <b>Date:</b> {e.date}
+                  </p>
+
+                  <p>
+                    <b>Location:</b> {e.location}
+                  </p>
+
+                  <p>{e.description}</p>
+
+                  <button
+                    className="primary-btn"
+                    onClick={() =>
+                      navigate(`/events/${e.id}`)
+                    }
+                  >
+                    View Details
+                  </button>
+
+                </div>
+
+              ))}
+
+>>>>>>> adam
           </div>
 
-<<<<<<< Updated upstream
+<<<<<<< HEAD
+      {visibleEvents < filteredEvents.length && (
+        <div style={{ textAlign: "center", margin: "30px 0" }}>
+          <button
+            className="primary-btn"
+            onClick={() => setVisibleEvents(prev => prev + 6)}
+          >
+            Load More Events
+          </button>
+        </div>
+      )}
+||||||| 8c91616
       {/* ===== BORROW / LEND ===== */}
       <h2 className="section-title">Borrow & Lend</h2>
 
@@ -364,33 +442,36 @@ export default function EventsPage() {
           </div>
         ))}
       </div>
-
-||||||| Stash base
-      {visibleEvents < filteredEvents.length && (
-        <div style={{ textAlign: "center", margin: "30px 0" }}>
-          <button
-            className="primary-btn"
-            onClick={() => setVisibleEvents(prev => prev + 6)}
-          >
-            Load More Events
-          </button>
-        </div>
-      )}
-
 =======
+
           {visibleEvents < eventsToRender.length && (
-            <div style={{ textAlign: "center", margin: "30px 0" }}>
+
+            <div
+              style={{
+                textAlign: "center",
+                margin: "30px 0",
+              }}
+            >
+
               <button
                 className="primary-btn"
-                onClick={() => setVisibleEvents((prev) => prev + 6)}
+                onClick={() =>
+                  setVisibleEvents((prev) => prev + 6)
+                }
               >
                 Load More Events
               </button>
+
             </div>
+
           )}
+
         </>
+
       )}
->>>>>>> Stashed changes
+>>>>>>> adam
+
     </div>
+
   );
 }
