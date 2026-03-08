@@ -1,5 +1,6 @@
 from django import forms
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -73,10 +74,10 @@ class TrustFeedback(models.Model):
         blank=True,
     )
     borrower = models.ForeignKey(
-        "User", related_name="borrower_trust", on_delete=models.CASCADE
+        "Profile", related_name="borrower_trust", on_delete=models.CASCADE
     )
     lender = models.ForeignKey(
-        "User", related_name="lender_trust", on_delete=models.CASCADE
+        "Profile", related_name="lender_trust", on_delete=models.CASCADE
     )
     item_returned = models.BooleanField(default=False)
     return_timeliness = models.CharField(
@@ -96,10 +97,10 @@ class Transaction(models.Model):
 
     listing = models.ForeignKey("Listing", on_delete=models.CASCADE)
     lender = models.ForeignKey(
-        "User", related_name="lending_transaction", on_delete=models.CASCADE
+        "Profile", related_name="lending_transaction", on_delete=models.CASCADE
     )
     borrower = models.ForeignKey(
-        "User", related_name="borrowing_transaction", on_delete=models.CASCADE
+        "Profile", related_name="borrowing_transaction", on_delete=models.CASCADE
     )
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
@@ -112,32 +113,31 @@ class Transaction(models.Model):
 
 
 # Might change to form.Forms
-class User(models.Model):
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # f_name = models.CharField(max_length=25, blank=False, null=False)
+    # l_name = models.CharField(max_length=25, blank=False, null=False)
+    address = models.CharField(max_length=255)
+    neighborhood = models.ForeignKey("Neighborhood", on_delete=models.CASCADE)
+    photo_url = models.TextField(blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
 
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
         NEIGHBOR = "neighbor", "Neighbor"
 
-    # username = models.CharField(max_length=30, blank=False, null=False)
-    # password = models.CharField(
-    #     max_length=30, blank=False, null=False, widget=forms.PasswordInput
-    # )
-    f_name = models.CharField(max_length=25, blank=False, null=False)
-    l_name = models.CharField(max_length=25, blank=False, null=False)
-    address = models.CharField(max_length=255, blank=False, null=False)
-    neighborhood = models.ForeignKey("Neighborhood", on_delete=models.CASCADE)
-    photo_url = models.TextField()
-    user_bio = models.TextField()
     role = models.CharField(max_length=8, choices=Role.choices, default=Role.NEIGHBOR)
-    trust_rating = models.DecimalField(max_digits=2, decimal_places=1)
-    trust_total_transactions = models.IntegerField(default=0, blank=False, null=False)
-    trust_returns_missing = models.IntegerField(default=0, blank=False, null=False)
-    trust_damaged_count = models.IntegerField(default=0, blank=False, null=False)
-    trust_late_count = models.IntegerField(default=0, blank=False, null=False)
+
+    # Trust fields
+    trust_rating = models.DecimalField(max_digits=2, decimal_places=1, default=0.0)
+    trust_total_transactions = models.IntegerField(default=0)
+    trust_returns_missing = models.IntegerField(default=0)
+    trust_damaged_count = models.IntegerField(default=0)
+    trust_late_count = models.IntegerField(default=0)
     trust_last_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.pk} {self.f_name}"
+        return f"{self.user.username} ({self.user.first_name})"
 
 
 class Neighborhood(models.Model):
@@ -158,10 +158,9 @@ class Listing(models.Model):
         ("unavailable", "Unavailable"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
     type = models.CharField(max_length=7, choices=Type.choices, default=Type.REQUEST)
     item = models.ForeignKey("Item", on_delete=models.CASCADE, null=True, blank=True)
-    skill = models.ForeignKey("Skill", on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=150)
     listing_bio = models.TextField()
     status = models.CharField(
@@ -195,7 +194,7 @@ class Chat(models.Model):
 
 class Message(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
-    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    sender = models.ForeignKey(Profile, on_delete=models.CASCADE)
     content = models.TextField()
     timestamp = models.DateTimeField()
 
@@ -222,26 +221,23 @@ class Item(models.Model):
         return f"{self.pk}"
 
 
-class Skill(models.Model):
-    name = models.CharField(max_length=255)
-    descirption = models.TextField()
-    category = models.CharField(max_length=100)
-    status = models.CharField(
-        max_length=50, choices=ItemStatus.choices, default=ItemStatus.AVAILABLE
-    )
+# The items the user has listed
+class ItemProfileAssociation(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class SavedAssociation(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "item")
 
     def __str__(self):
-        return f"{self.pk}"
-
-
-class SkillUserAssociation(models.Model):
-    skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-
-class ItemUserAssociation(models.Model):
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+        return f"{self.user.user.first_name} saved {self.item.name}"
 
 
 class Events(models.Model):
@@ -250,12 +246,12 @@ class Events(models.Model):
     address = models.CharField(max_length=100)
     description = models.TextField()
 
-    host = models.ForeignKey(User, on_delete=models.CASCADE)
+    host = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
 
-class EventUserAssociation(models.Model):
+class EventProfileAssociation(models.Model):
     event = models.ForeignKey(Events, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
 
 # Adam End

@@ -2,22 +2,22 @@ from django.test import TestCase
 from django.utils import timezone
 from datetime import timedelta
 
-from main.models import User, Neighborhood, Listing
+from main.models import Profile, Neighborhood, Listing
 
 
-class UserProfileEndpointTests(TestCase):
+class ProfileProfileEndpointTests(TestCase):
     def setUp(self):
         self.neighborhood = Neighborhood.objects.create(
             name="Test Neighborhood",
             zip="48326",
         )
 
-        self.user = User.objects.create(
+        self.user = Profile.objects.create(
             f_name="Test",
-            l_name="User",
+            l_name="Profile",
             address="123 Test St",
             photo_url="",
-            user_bio="Hello",
+            bio="Hello",
             neighborhood=self.neighborhood,
             trust_rating=0,
         )
@@ -32,7 +32,7 @@ class UserProfileEndpointTests(TestCase):
             neighborhood=self.neighborhood,
             type="offer",
             title="Canoe",
-            status="active", #status is active but the date says it is expired
+            status="active",  # status is active but the date says it is expired
             start_date=start,
             end_date=end,
             image_url="test.jpg",
@@ -106,7 +106,7 @@ class UserProfileEndpointTests(TestCase):
     def test_profile_404_for_missing_user(self):
         resp = self.client.get("/main/user/99999/profile/")
         self.assertEqual(resp.status_code, 404)
-        
+
     def test_profile_with_no_listings(self):
         resp = self.client.get(f"/main/user/{self.user.id}/profile/")
         self.assertEqual(resp.status_code, 200)
@@ -123,7 +123,7 @@ class UserProfileEndpointTests(TestCase):
 
         # optional: signal should be green or whatever your rule is when nothing is active
         # self.assertIn(computed["signal"], ["green", "yellow", "red"])
-    
+
     def test_profile_payload_shape(self):
         resp = self.client.get(f"/main/user/{self.user.id}/profile/")
         self.assertEqual(resp.status_code, 200)
@@ -134,7 +134,6 @@ class UserProfileEndpointTests(TestCase):
         self.assertIn("trust", data)
         self.assertIn("listings", data)
         self.assertIn("items", data)
-        self.assertIn("skills", data)
         self.assertIn("computed", data)
 
         # nested user keys

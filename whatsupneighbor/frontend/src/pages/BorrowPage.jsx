@@ -4,7 +4,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import SearchBar from "../components/general/SearchBar";
 
 export default function BorrowPage() {
-
+  const token = localStorage.getItem("accessToken");
   const navigate = useNavigate();
 
   const [items, setItems] = useState([]);
@@ -31,7 +31,12 @@ export default function BorrowPage() {
       try {
 
         const res = await fetch(
-          "http://127.0.0.1:8000/main/items/"
+          "http://127.0.0.1:8000/main/items/", {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            }
         );
 
         const data = await res.json();

@@ -4,7 +4,7 @@ import SearchBar from "../components/general/SearchBar";
 
 export default function EventsPage() {
   const [search, setSearch] = useState("");
-
+  const token = localStorage.getItem("accessToken");
   const navigate = useNavigate();
 
   const [events, setEvents] = useState([]);
@@ -20,7 +20,24 @@ export default function EventsPage() {
 
       try {
 
-        const res = await fetch("http://127.0.0.1:8000/main/events/");
+        const res = await fetch("http://127.0.0.1:8000/main/events/", {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            });
+        if (!res.ok) {
+          console.error("Request failed:", res.status);
+
+          if (res.status === 401) {
+            navigate("auth/"); // or auth page
+            return;
+          }
+
+          setEvents([]);
+          setFilteredEvents([]);
+          return;
+        }
         const data = await res.json();
 
         const results = data.results || data;

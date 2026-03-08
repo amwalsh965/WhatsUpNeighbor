@@ -14,7 +14,7 @@ class TransactionViews:
     def create_transaction(
         self,
         listing: Listing,
-        borrower: User,
+        borrower: Profile,
         start_date=None,
         end_date=None,
         status: str = Status.IN_PROGRESS,
@@ -71,7 +71,7 @@ class TransactionViews:
         start_date=None,
         end_date=None,
         status: str = None,
-        borrower: User = None,
+        borrower: Profile = None,
     ) -> Transaction:
         if start_date is not None:
             self.transaction.start_date = start_date
@@ -90,7 +90,7 @@ class TransactionViews:
         self.transaction.save()
         return self.transaction
 
-    def complete_transaction(self, acting_user: User) -> Transaction:
+    def complete_transaction(self, acting_user: Profile) -> Transaction:
         """
         Mark transaction completed & unlock listing.
         """
@@ -114,11 +114,11 @@ class TrustFeedbackViews:
     def __init__(self, pk: int):
         self.tfv = TrustFeedback.objects.get(pk=pk)
         self.transaction: Transaction = self.tfv.transaction
-        self.lender: User = self.tfv.lender
-        self.borrower: User = self.tfv.borrower
+        self.lender: Profile = self.tfv.lender
+        self.borrower: Profile = self.tfv.borrower
 
     # Calculating user trust fields for a user
-    def calc_trust_fields(self, user: User):
+    def calc_trust_fields(self, user: Profile):
         trust_objs_borrowing = TrustFeedback.objects.filter(borrower_id=user.pk)
         trust_objs_lending = TrustFeedback.objects.filter(lender_id=user.pk)
         user.trust_rating = round(
@@ -149,13 +149,12 @@ class ListingViews:
 
     def create_listing(
         self,
-        owner: User,
+        owner: Profile,
         title: str,
         listing_bio: str,
         photo_url: str,
         listing_type: str = Listing.Type.REQUEST,
         item: Item = None,
-        skill: Skill = None,
         status: str = Status.OPEN,
     ):
         new_listing = Listing.objects.create(
@@ -165,7 +164,6 @@ class ListingViews:
             image_url=photo_url,
             type=listing_type,
             item=item,
-            skill=skill,
             start_date=timezone.now(),
             end_date=timezone.now()
             + timedelta(days=7),  # end dates are defaulted to 7 days out
@@ -183,7 +181,6 @@ class ListingViews:
         listing_type: str = None,
         status: str = None,
         item: Item = None,
-        skill: Skill = None,
     ):
         if title:
             self.listing.title = title
@@ -197,8 +194,6 @@ class ListingViews:
             self.listing.status = status
         if item is not None:
             self.listing.item = item
-        if skill is not None:
-            self.listing.skill = skill
 
         self.listing.save()
         return self.listing
@@ -212,19 +207,18 @@ class NeighborhoodViews:
     def __init__(self, pk: int):
         try:
             self.neighborhood = Neighborhood.objects.get(pk=pk)
-    
+
         except Neighborhood.DoesNotExist:
             self.neighborhood = None
 
     # get listings for a neighborhood
     def get_listings(self):
-        return Listing.objects.filter(neighborhood = self.neighborhood.pk)  
+        return Listing.objects.filter(neighborhood=self.neighborhood.pk)
 
-    #get users for a neighborhood
+    # get users for a neighborhood
     def get_users(self):
-        return User.objects.filter(neighborhood = self.neighborhood.pk)   
-            
-      
+        return Profile.objects.filter(neighborhood=self.neighborhood.pk)
+
 
 class ChatViews:
     def __init__(self, pk: int):
@@ -234,7 +228,7 @@ class ChatViews:
             self.chat = None
 
     def transactionChat(transaction_id):
-        return Chat.objects.filter(transaction_id = transaction_id)
+        return Chat.objects.filter(transaction_id=transaction_id)
 
     def get_chat(self):
         return self.chat
@@ -247,7 +241,7 @@ class MessageViews:
         except Message.DoesNotExist:
             self.message = None
 
-    def create_message(self, chat: Chat, sender: User, content: str, timestamp=None):
+    def create_message(self, chat: Chat, sender: Profile, content: str, timestamp=None):
         if timestamp is None:
             timestamp = timezone.now()
         new_message = Message.objects.create(
@@ -257,11 +251,11 @@ class MessageViews:
         return new_message
 
     def update_message(self, content: str):
-        self.message.content = content 
+        self.message.content = content
         self.message.timestamp = timezone.now()
         self.message.save()
         return self.message
-    
+
     def get_messages_by_chat(self, chat_id):
         return Message.objects.filter(chat_id=chat_id).order_by("timestamp")
 
@@ -270,9 +264,6 @@ class MessageViews:
         self.message = None
         return True
 
+
 class ItemViews:
-    pass
-
-
-class SkillViews:
     pass

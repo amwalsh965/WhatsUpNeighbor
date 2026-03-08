@@ -86,7 +86,7 @@ def create_events():
         "Hedge Trimmer",
     ]
 
-    owners = [host for host in User.objects.all()]
+    owners = [host for host in Profile.objects.all()]
 
     for i in range(len(eventTypes)):
         for j in range(len(locations)):

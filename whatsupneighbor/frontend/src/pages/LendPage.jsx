@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 
 export default function LendPage() {
   const navigate = useNavigate();
-
+  const token = localStorage.getItem("accessToken");
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -12,7 +12,12 @@ export default function LendPage() {
   const [myItems, setMyItems] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/main/lend/")
+    fetch("http://127.0.0.1:8000/main/lend/", {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            })
       .then(res => res.json())
       .then(data => setMyItems(data.results || data));
   }, []);
@@ -24,10 +29,11 @@ export default function LendPage() {
 
     try {
       const res = await fetch("http://127.0.0.1:8000/main/lend/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            
         body: JSON.stringify({
           ...formData,
           status: "Available",
@@ -52,6 +58,11 @@ export default function LendPage() {
   const removeItem = async (id) => {
     try {
       await fetch(`http://127.0.0.1:8000/main/lend/${id}/`, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            
         method: "DELETE",
       });
 

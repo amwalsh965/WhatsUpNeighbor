@@ -1,43 +1,69 @@
-
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import appIcon from "../assets/WhatsUpNeighborAppIcon.png";
-import "../index.css";
 
 export default function AuthPage() {
-    return (
-      <div className="auth-screen">
-        <div className="auth-card">
-          {/* App Icon */}
-          <img
-            src={appIcon}
-            alt="App Icon"
-            className="auth-icon"
-          />
-  
-          {/* Username */}
-          <label className="auth-label">Username</label>
-          <input
-            className="auth-input"
-            placeholder="Type Here"
-          />
-  
-          {/* Password */}
-          <label className="auth-label">Password</label>
-          <input
-            className="auth-input"
-            type="password"
-            placeholder="Type Here"
-          />
-  
-          {/* Buttons */}
-          <button className="auth-button primary">
-            Login
-          </button>
-  
-          <button className="auth-button secondary">
-            Create Account
-          </button>
-        </div>
+  const token = localStorage.getItem("accessToken");
+  const navigate = useNavigate();
+  const [username, setProfilename] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  // Redirect if already logged in
+  useEffect(() => {
+    async function checkAuth() {
+      const res = await fetch("http://127.0.0.1:8000/main/current_user/", {
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+      });
+      const data = await res.json();
+      if (data.authenticated) navigate("/"); // go to home
+    }
+    checkAuth();
+  }, [navigate]);
+
+  const handleLogin = async () => {
+    const res = await fetch("http://127.0.0.1:8000/main/auth/login/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    console.log(data)
+    if (res.ok) {
+      localStorage.setItem("accessToken", data.access);   // access token
+      localStorage.setItem("refreshToken", data.refresh); // optional, if using refresh
+      navigate("/"); // redirect to protected page
+
+    } else {
+      console.error("Login Failed", data);
+    }
+    if (data.success) navigate("/"); // go to home page
+    else setError(data.error);
+  };
+
+  return (
+    <div className="auth-screen">
+      <div className="auth-card">
+        <img src={appIcon} alt="App Icon" className="auth-icon" />
+
+        <label>Username</label>
+        <input value={username} onChange={(e) => setProfilename(e.target.value)} />
+
+        <label>Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        {error && <div className="error-text">{error}</div>}
+
+        <button onClick={handleLogin}>Login</button>
+        <button onClick={() => navigate("/sign-up")}>Create Account</button>
       </div>
-    );
-  }
+    </div>
+  );
+}

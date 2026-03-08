@@ -2,7 +2,6 @@ import BorrowPage from "./pages/BorrowPage";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import EventsPage from "./pages/EventsPage";
-import Login from "./pages/Login";
 import Message from "./pages/Message";
 import Profile from "./pages/Profile";
 import ListingDetailsPage from "./pages/ListingsDetailsPage";
@@ -12,26 +11,26 @@ import Saved from "./pages/Saved";
 import LendPage from "./pages/LendPage";
 import ConnectPage from "./pages/ConnectPage";
 import TrustFeedback from "./pages/TrustFeedback";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 //Change Event to EventsPage in import and down below (for Sayman)
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/events" element={<EventsPage />} />
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="/listing-details" element={<ListingDetailsPage />} />
         <Route path="/sign-up" element={<SignUpFlow />} />
-        <Route path="/saved" element={<Saved />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/messages" element={<Message />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/borrow" element={<BorrowPage />} />
-        <Route path="/lend" element={<LendPage />} />
-        <Route path="/connect" element={<ConnectPage />} />
-        <Route path="/trust-feedback" element={<TrustFeedback />} />
-        <Route path="/sign-up-flow" element={<SignUpFlow />} />
+
+        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+        <Route path="/events" element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
+        <Route path="/listing-details" element={<ProtectedRoute><ListingDetailsPage /></ProtectedRoute>} />
+        <Route path="/saved" element={<ProtectedRoute><Saved /></ProtectedRoute>} />
+        <Route path="/messages" element={<ProtectedRoute><Message /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/borrow" element={<ProtectedRoute><BorrowPage /></ProtectedRoute>} />
+        <Route path="/lend" element={<ProtectedRoute><LendPage /></ProtectedRoute>} />
+        <Route path="/connect" element={<ProtectedRoute><ConnectPage /></ProtectedRoute>} />
+        <Route path="/trust-feedback" element={<ProtectedRoute><TrustFeedback /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

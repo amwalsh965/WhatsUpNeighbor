@@ -9,6 +9,8 @@ function SearchBar({
   onResults,
   placeholder = "Search...",
 }) {
+    
+    const token = localStorage.getItem("accessToken");
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -41,13 +43,12 @@ function SearchBar({
       try {
 
         const res = await fetch(
-          `http://127.0.0.1:8000/main/search/?search=${encodeURIComponent(debouncedQuery)}`,
-          {
-            signal: controller.signal,
+          `http://127.0.0.1:8000/main/search/?search=${encodeURIComponent(debouncedQuery)}`, {
             headers: {
-              "X-Search-Models": models.join(","),  // send models
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
             },
-          }
+            }
         );
 
         const data = await res.json();

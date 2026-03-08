@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 export default function TrustFeedback() {
+  const token = localStorage.getItem("accessToken");
   const [feedbackId, setFeedbackId] = useState("");
   const [singleFeedback, setSingleFeedback] = useState(null);
   const [allFeedback, setAllFeedback] = useState([]);
@@ -27,7 +28,13 @@ export default function TrustFeedback() {
 
   const createFeedback = async () => {
     const res = await fetch(FEEDBACK_BASE, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            
       method: "POST",
+      credentials: "include", // send cookies
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...trustData,
@@ -42,13 +49,23 @@ export default function TrustFeedback() {
   };
 
   const getFeedback = async () => {
-    const res = await fetch(`${FEEDBACK_BASE}${feedbackId}/`);
+    const res = await fetch(`${FEEDBACK_BASE}${feedbackId}/`, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            }) // send cookies);
     const data = await res.json();
     setSingleFeedback(data);
   };
 
   const getAllFeedback = async () => {
-    const res = await fetch(FEEDBACK_BASE);
+    const res = await fetch(FEEDBACK_BASE, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            }) // send cookies);
     const data = await res.json();
     setAllFeedback(data);
     setSingleFeedback(null);

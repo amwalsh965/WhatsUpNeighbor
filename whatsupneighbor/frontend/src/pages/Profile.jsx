@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Images
@@ -10,26 +10,66 @@ import chatIcon from "../assets/speech-bubble.png";
 import userIcon from "../assets/avatar-icon.png";
 
 export default function ProfilePage() {
+  const token = localStorage.getItem("accessToken");
   const navigate = useNavigate();
-
-  const [assets] = useState([
+  const [form, setForm] = useState({
+    bio: "",
+    website: "",
+    photo_url: "",
+    address: "",
+    neighborhood: "",
+  });
+  const [assets, setAssets] = useState([
     { name: "Kayak", status: "available" },
     { name: "Grill", status: "lending", extra: "Lending to Dates" },
   ]);
+  const [error, setError] = useState("");
 
-  const [form, setForm] = useState({
-    items: "Kayak, grill",
-    bio: "",
-    website: "",
-  });
+  // Fetch profile
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/main/profiles/me/", {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            });
+        const data = await res.json();
+        setForm({
+          bio: data.bio || "",
+          website: data.website || "",
+          photo_url: data.photo_url || "",
+          address: data.address || "",
+        });
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load profile.");
+      }
+    }
+
+    fetchProfile();
+  }, []);
 
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const onBack = () => {
-    navigate(-1);
+  const saveProfile = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/main/profiles/me/", {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            });
+      const data = await res.json();
+      if (!data.success) setError(data.error || "Failed to save profile.");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to save profile.");
+    }
   };
 
   return (
@@ -38,38 +78,27 @@ export default function ProfilePage() {
       <header className="profile-ui__topbar">
         <button
           className="profile-ui__iconbtn"
-          onClick={onBack}
+          onClick={() => navigate(-1)}
           aria-label="Back"
         >
-          <img className="profile-ui__backicon" src={backArrow} alt="" />
+          <img className="profile-ui__backicon" src={backArrow} alt="Back" />
         </button>
-
         <div className="profile-ui__title">Profile</div>
         <div className="profile-ui__spacer" />
       </header>
 
+      {error && <div className="sf-error">{error}</div>}
+
       <main className="profile-ui__content">
-        {/* left side */}
+        {/* Left side: profile info */}
         <section className="profile-ui__left">
           <div className="profile-ui__avatarcard">
             <img
-              src={profileImage}
+              src={form.photo_url || profileImage}
               alt="Profile"
               className="profile-ui__avatarimg"
             />
-
-            <div className="profile-ui__name">Tyler Johnson</div>
-
-            <div className="profile-ui__stats">
-              <div className="profile-ui__stat">
-                <div className="profile-ui__statvalue">2</div>
-                <div className="profile-ui__statlabel">Items Lent</div>
-              </div>
-              <div className="profile-ui__stat">
-                <div className="profile-ui__statvalue">4.5</div>
-                <div className="profile-ui__statlabel">Rating</div>
-              </div>
-            </div>
+            <div className="profile-ui__name">{/* Optional: username */}</div>
           </div>
 
           <label className="profile-ui__label" htmlFor="bio">
@@ -94,12 +123,33 @@ export default function ProfilePage() {
             value={form.website}
             onChange={onChange}
           />
+
+          <label className="profile-ui__label" htmlFor="address">
+            Address
+          </label>
+          <input
+            id="address"
+            className="profile-ui__input"
+            name="address"
+            value={form.address}
+            onChange={onChange}
+          />
+
+          <button
+            className="profile-ui__primarybtn"
+            type="button"
+            onClick={saveProfile}
+          >
+            Save Profile
+          </button>
+
+          <label className="profile-ui__label">Neighborhood</label>
+          <p className="profile-ui__readonly">{form.neighborhood || "N/A"}</p>
         </section>
 
-        {/* right side */}
+        {/* Right side: assets */}
         <section className="profile-ui__right">
           <div className="profile-ui__assetsheader">Assets</div>
-
           <div className="profile-ui__assetslist">
             {assets.map((asset) => (
               <div key={asset.name} className="profile-ui__assetrow">
@@ -113,11 +163,8 @@ export default function ProfilePage() {
                     }`}
                   />
                 </div>
-
                 {asset.extra && (
-                  <div className="profile-ui__assetextra">
-                    {asset.extra}
-                  </div>
+                  <div className="profile-ui__assetextra">{asset.extra}</div>
                 )}
               </div>
             ))}
@@ -131,7 +178,7 @@ export default function ProfilePage() {
               id="items"
               className="profile-ui__rightinput"
               name="items"
-              value={form.items}
+              value={form.items || ""}
               onChange={onChange}
             />
           </div>
@@ -146,20 +193,17 @@ export default function ProfilePage() {
         </section>
       </main>
 
-      {/* ✅ Bottom Navigation */}
+      {/* Bottom navigation */}
       <nav className="bottom-nav">
         <button className="nav-item" onClick={() => navigate("/events")}>
           <img className="nav-icon" src={calIcon} alt="Events" />
         </button>
-
         <button className="nav-item" onClick={() => navigate("/saved")}>
           <img className="nav-icon" src={heartIcon} alt="Saved" />
         </button>
-
         <button className="nav-item" onClick={() => navigate("/messages")}>
           <img className="nav-icon" src={chatIcon} alt="Messages" />
         </button>
-
         <button className="nav-item" onClick={() => navigate("/profile")}>
           <img className="nav-icon" src={userIcon} alt="Profile" />
         </button>

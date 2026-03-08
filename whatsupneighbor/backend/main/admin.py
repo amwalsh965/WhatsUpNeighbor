@@ -9,8 +9,8 @@ class ExampleModelAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
     pass
 
 
@@ -46,9 +46,4 @@ class MessageAdmin(admin.ModelAdmin):
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Skill)
-class SkillAdmin(admin.ModelAdmin):
     pass
