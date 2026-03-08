@@ -31,7 +31,7 @@ function App() {
         <Route path="/lend" element={<LendPage />} />
         <Route path="/connect" element={<ConnectPage />} />
         <Route path="/trust-feedback" element={<TrustFeedback />} />
-
+        <Route path="/sign-up-flow" element={<SignUpFlow />} />
       </Routes>
     </Router>
   );
