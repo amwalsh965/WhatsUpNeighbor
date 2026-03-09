@@ -41,7 +41,6 @@ class TransactionViews:
             if borrower.pk == locked_listing.user_id:
                 raise ValidationError("Cannot complete a transaction with yourself.")
 
-            # Keeps transactions according to availability
             if (
                 start_date < locked_listing.start_date
                 or end_date > locked_listing.end_date
@@ -49,8 +48,6 @@ class TransactionViews:
                 raise ValidationError(
                     "Transaction dates must be within the listing start or end dates."
                 )
-
-            # Locks the selected listing
             locked_listing.status = self.LISTING_UNAVAILABLE
             locked_listing.save()
 
@@ -165,8 +162,7 @@ class ListingViews:
             type=listing_type,
             item=item,
             start_date=timezone.now(),
-            end_date=timezone.now()
-            + timedelta(days=7),  # end dates are defaulted to 7 days out
+            end_date=timezone.now() + timedelta(days=7),
             status=status,
             neighborhood=owner.neighborhood,
         )

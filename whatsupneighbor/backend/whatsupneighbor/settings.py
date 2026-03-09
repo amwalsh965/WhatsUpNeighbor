@@ -12,26 +12,16 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-@^^s^&a#7y@q$%&uq_jocn#)^up-mep)=*gz$1(aq)mdsc2(ny"
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-
-
-# Application definition
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -61,22 +51,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
 ]
-
-# SESSION_COOKIE_DOMAIN = None
-# CSRF_COOKIE_DOMAIN = None  # if using CSRF token
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:5173",
-#     "http://localhost:3000",
-# ]
-# CORS_ALLOW_CREDENTIALS = True
-# SESSION_COOKIE_SAMESITE = "None"
-# SESSION_COOKIE_HTTPONLY = True
-# SESSION_COOKIE_SECURE = False  # True only if HTTPS
-# CSRF_COOKIE_SECURE = False
-# CSRF_TRUSTED_ORIGINS = [
-#     "http://localhost:5173",
-#     "http://localhost:3000",
-# ]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",

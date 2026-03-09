@@ -12,7 +12,6 @@ export default function EventsPage() {
   const [visibleEvents, setVisibleEvents] = useState(6);
   const [loading, setLoading] = useState(true);
 
-  /* ===== FETCH EVENTS ===== */
 
   useEffect(() => {
 
@@ -30,7 +29,7 @@ export default function EventsPage() {
           console.error("Request failed:", res.status);
 
           if (res.status === 401) {
-            navigate("auth/"); // or auth page
+            navigate("/auth");
             return;
           }
 
@@ -61,13 +60,10 @@ export default function EventsPage() {
 
   }, []);
 
-  /* ===== RESET VISIBLE EVENTS WHEN SEARCH CHANGES ===== */
 
   useEffect(() => {
     setVisibleEvents(Math.min(6, filteredEvents.length));
   }, [filteredEvents]);
-
-  /* ===== HANDLE SEARCH RESULTS ===== */
 
   const handleSearchResults = useCallback((results) => {
 
@@ -85,7 +81,6 @@ export default function EventsPage() {
   return (
     <div className="events-page">
 
-      {/* ===== TOP BAR ===== */}
       <div className="topbar">
 
         <div className="logo-left" onClick={() => navigate("/")}>
@@ -98,7 +93,6 @@ export default function EventsPage() {
 
       </div>
 
-      {/* ===== HERO ===== */}
       <div className="events-hero">
         <h1>Neighborhood Hub</h1>
         <p>Events • Borrow • Lend • Connect</p>
@@ -151,10 +145,8 @@ export default function EventsPage() {
 
       </div>
 
-      {/* ===== EVENTS ===== */}
       <h2 className="section-title">Upcoming Events</h2>
 
-      {/* ===== EVENTS GRID ===== */}
 
       <h2 className="section-title">Recent Events</h2>
 

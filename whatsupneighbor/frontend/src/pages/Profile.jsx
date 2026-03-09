@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Images
 import profileImage from "../assets/avatar-icon.png";
 import backArrow from "../assets/leftpoint.png";
 import calIcon from "../assets/calendar.png";
@@ -25,7 +24,6 @@ export default function ProfilePage() {
   ]);
   const [error, setError] = useState("");
 
-  // Fetch profile
   useEffect(() => {
     async function fetchProfile() {
       try {
@@ -74,7 +72,6 @@ export default function ProfilePage() {
 
   return (
     <div className="profile-ui">
-      {/* Top bar */}
       <header className="profile-ui__topbar">
         <button
           className="profile-ui__iconbtn"
@@ -90,7 +87,6 @@ export default function ProfilePage() {
       {error && <div className="sf-error">{error}</div>}
 
       <main className="profile-ui__content">
-        {/* Left side: profile info */}
         <section className="profile-ui__left">
           <div className="profile-ui__avatarcard">
             <img
@@ -98,7 +94,7 @@ export default function ProfilePage() {
               alt="Profile"
               className="profile-ui__avatarimg"
             />
-            <div className="profile-ui__name">{/* Optional: username */}</div>
+            <div className="profile-ui__name"></div>
           </div>
 
           <label className="profile-ui__label" htmlFor="bio">
@@ -147,7 +143,6 @@ export default function ProfilePage() {
           <p className="profile-ui__readonly">{form.neighborhood || "N/A"}</p>
         </section>
 
-        {/* Right side: assets */}
         <section className="profile-ui__right">
           <div className="profile-ui__assetsheader">Assets</div>
           <div className="profile-ui__assetslist">
@@ -193,7 +188,6 @@ export default function ProfilePage() {
         </section>
       </main>
 
-      {/* Bottom navigation */}
       <nav className="bottom-nav">
         <button className="nav-item" onClick={() => navigate("/events")}>
           <img className="nav-icon" src={calIcon} alt="Events" />

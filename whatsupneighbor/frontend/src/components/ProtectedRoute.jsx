@@ -4,7 +4,7 @@ import useAuth from "../hooks/useAuth";
 export default function ProtectedRoute({ children }) {
   const isLoggedIn = useAuth();
 
-  if (isLoggedIn === null) return <div>Loading...</div>; // still checking
+  if (isLoggedIn === null) return <div>Loading...</div>;
 
   if (!isLoggedIn) return <Navigate to="/auth" replace />;
 

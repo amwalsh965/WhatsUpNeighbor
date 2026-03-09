@@ -9,7 +9,6 @@ export default function SignupFlow() {
 
   const [step, setStep] = useState(0);
 
-  // Signup form state
   const [signupData, setSignupData] = useState({
     username: "",
     password: "",
@@ -23,7 +22,6 @@ export default function SignupFlow() {
   });
   const [error, setError] = useState("");
 
-  // Redirect if already logged in
   useEffect(() => {
     async function checkAuth() {
       try {
@@ -93,7 +91,7 @@ export default function SignupFlow() {
           <NeighborhoodScreen
             signupData={signupData}
             handleChange={handleChange}
-            onSignup={handleSignup} // <-- pass function here
+            onSignup={handleSignup}
           />
         )}
       </div>
@@ -103,9 +101,6 @@ export default function SignupFlow() {
   );
 }
 
-/* ===========================
-   Individual Screens
-=========================== */
 
 function TermsScreen({ onAgree }) {
   return (
@@ -144,7 +139,6 @@ function ProfileScreen({ signupData, handleChange }) {
 
       <div className="profile-ui__content">
         <div className="profile-ui__left">
-          {/* Username */}
           <label className="profile-ui__label" htmlFor="username">
             User Name
           </label>
@@ -156,7 +150,6 @@ function ProfileScreen({ signupData, handleChange }) {
             value={signupData.username}
             onChange={(e) => handleChange("username", e.target.value)}
           />
-          {/* Password */}
           <label className="profile-ui__label" htmlFor="password">
             Password
           </label>
@@ -168,7 +161,7 @@ function ProfileScreen({ signupData, handleChange }) {
             value={signupData.password}
             onChange={(e) => handleChange("password", e.target.value)}
           />
-          {/* First Name */}
+
           <label className="profile-ui__label" htmlFor="f_name">
             First Name
           </label>
@@ -181,7 +174,6 @@ function ProfileScreen({ signupData, handleChange }) {
             onChange={(e) => handleChange("f_name", e.target.value)}
           />
 
-          {/* Last Name */}
           <label className="profile-ui__label" htmlFor="l_name">
             Last Name
           </label>
@@ -194,7 +186,6 @@ function ProfileScreen({ signupData, handleChange }) {
             onChange={(e) => handleChange("l_name", e.target.value)}
           />
 
-          {/* Bio */}
           <label className="profile-ui__label" htmlFor="bio">
             Bio
           </label>
@@ -206,7 +197,6 @@ function ProfileScreen({ signupData, handleChange }) {
             onChange={(e) => handleChange("bio", e.target.value)}
           />
 
-          {/* Website */}
           <label className="profile-ui__label" htmlFor="website">
             Website
           </label>
@@ -218,8 +208,6 @@ function ProfileScreen({ signupData, handleChange }) {
             value={signupData.website}
             onChange={(e) => handleChange("website", e.target.value)}
           />
-
-          {/* Items */}
           <label className="profile-ui__label" htmlFor="items">
             Items
           </label>
@@ -232,7 +220,6 @@ function ProfileScreen({ signupData, handleChange }) {
             onChange={(e) => handleChange("items", e.target.value)}
           />
 
-          {/* Submit / Next Button */}
           <button className="profile-ui__primarybtn">
             Continue
           </button>

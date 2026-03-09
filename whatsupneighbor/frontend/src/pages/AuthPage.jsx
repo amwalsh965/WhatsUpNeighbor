@@ -9,7 +9,6 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Redirect if already logged in
   useEffect(() => {
     async function checkAuth() {
       const res = await fetch("http://127.0.0.1:8000/main/current_user/", {
@@ -19,7 +18,7 @@ export default function AuthPage() {
         },
       });
       const data = await res.json();
-      if (data.authenticated) navigate("/"); // go to home
+      if (data.authenticated) navigate("/");
     }
     checkAuth();
   }, [navigate]);
@@ -33,14 +32,14 @@ export default function AuthPage() {
     const data = await res.json();
     console.log(data)
     if (res.ok) {
-      localStorage.setItem("accessToken", data.access);   // access token
-      localStorage.setItem("refreshToken", data.refresh); // optional, if using refresh
-      navigate("/"); // redirect to protected page
+      localStorage.setItem("accessToken", data.access); 
+      localStorage.setItem("refreshToken", data.refresh);
+      navigate("/");
 
     } else {
       console.error("Login Failed", data);
     }
-    if (data.success) navigate("/"); // go to home page
+    if (data.success) navigate("/");
     else setError(data.error);
   };
 

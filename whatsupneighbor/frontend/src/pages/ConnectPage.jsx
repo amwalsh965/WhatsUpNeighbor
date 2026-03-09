@@ -5,8 +5,6 @@ export default function ConnectPage() {
 
   return (
     <div className="events-page">
-
-      {/* Top Bar */}
       <div className="topbar">
         <div className="logo-left" onClick={() => navigate("/")}>
           🏠 Rae
@@ -16,8 +14,6 @@ export default function ConnectPage() {
           👤
         </div>
       </div>
-
-      {/* Hero */}
       <div className="events-hero">
         <h1>Connect with Neighbors</h1>
 

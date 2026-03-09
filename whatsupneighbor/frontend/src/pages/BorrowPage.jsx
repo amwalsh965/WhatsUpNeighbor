@@ -12,8 +12,6 @@ export default function BorrowPage() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [favorites, setFavorites] = useState([]);
 
-  /* ===== FAVORITES ===== */
-
   const toggleFavorite = (id) => {
 
     setFavorites((prev) =>
@@ -53,8 +51,6 @@ export default function BorrowPage() {
 
   }, []);
 
-  /* ===== SEARCH RESULTS FROM BACKEND ===== */
-
   const handleSearchResults = useCallback((results) => {
 
     if (!results) {
@@ -69,8 +65,6 @@ export default function BorrowPage() {
   return (
     <div className="events-page">
 
-      {/* ===== TOP BAR ===== */}
-
       <div className="topbar">
 
         <div className="logo-left" onClick={() => navigate("/")}>
@@ -82,9 +76,6 @@ export default function BorrowPage() {
         </div>
 
       </div>
-
-
-      {/* ===== HERO ===== */}
 
       <div className="events-hero">
 
@@ -131,8 +122,6 @@ export default function BorrowPage() {
         </div>
 
 
-        {/* SEARCH BAR */}
-
         <SearchBar
           outline={true}
           models={["items"]}
@@ -141,9 +130,6 @@ export default function BorrowPage() {
         />
 
       </div>
-
-
-      {/* ===== GRID ===== */}
 
       <h2 className="section-title">Available Items</h2>
 
@@ -209,9 +195,6 @@ export default function BorrowPage() {
 
       </div>
 
-
-      {/* LOAD MORE */}
-
       {visibleItems < items.length && (
 
         <div style={{ textAlign: "center", margin: "40px 0" }}>
@@ -227,9 +210,6 @@ export default function BorrowPage() {
         </div>
 
       )}
-
-
-      {/* ===== MODAL ===== */}
 
       {selectedItem && (
 

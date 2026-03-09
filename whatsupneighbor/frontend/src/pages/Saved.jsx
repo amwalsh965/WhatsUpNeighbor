@@ -12,8 +12,6 @@ export default function SavedScreen() {
     setSearchResults(results || []);
   }, []);
 
-
-  //Must login 
   useEffect(() => {
   async function checkAuth() {
     const res = await fetch("http://127.0.0.1:8000/main/current_user/", {
@@ -25,7 +23,7 @@ export default function SavedScreen() {
     const data = await res.json();
     if (!data.authenticated) navigate("/auth");
   }
-  checkAuth();
+  // checkAuth();
 }, [navigate]);
 
   useEffect(() => {

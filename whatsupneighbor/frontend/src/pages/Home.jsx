@@ -63,8 +63,6 @@ export default function HomeScreen() {
           </div>
         </div>
       </div>
-
-      {/* ===== Bottom Navigation ===== */}
       <nav className="bottom-nav">
         <button className="nav-item" onClick={() => navigate("/events")}>
           <img className="nav-icon" src={calIcon} alt="Events" />

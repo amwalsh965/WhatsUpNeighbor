@@ -32,7 +32,7 @@ class ProfileProfileEndpointTests(TestCase):
             neighborhood=self.neighborhood,
             type="offer",
             title="Canoe",
-            status="active",  # status is active but the date says it is expired
+            status="active",
             start_date=start,
             end_date=end,
             image_url="test.jpg",

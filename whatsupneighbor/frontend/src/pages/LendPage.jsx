@@ -23,37 +23,37 @@ export default function LendPage() {
   }, []);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!formData.name || !formData.category) return;
+  if (!formData.name || !formData.category) return;
 
-    try {
-      const res = await fetch("http://127.0.0.1:8000/main/lend/", {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-            
-        body: JSON.stringify({
-          ...formData,
-          status: "Available",
-        }),
-      });
+  try {
+    const res = await fetch("http://127.0.0.1:8000/main/lend/", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...formData,
+        status: "Available",
+      }),
+    });
 
-      const newItem = await res.json();
+    const newItem = await res.json();
 
-      setMyItems([newItem, ...myItems]);
+    setMyItems([newItem, ...myItems]);
 
-      setFormData({
-        name: "",
-        category: "",
-        description: "",
-      });
+    setFormData({
+      name: "",
+      category: "",
+      description: "",
+    });
 
-    } catch (err) {
-      console.error("Error posting item:", err);
-    }
-  };
+  } catch (err) {
+    console.error("Error posting item:", err);
+  }
+};
 
   const removeItem = async (id) => {
     try {
@@ -76,7 +76,6 @@ export default function LendPage() {
   return (
     <div className="events-page">
 
-      {/* ===== TOP BAR ===== */}
       <div className="topbar">
         <div className="logo-left" onClick={() => navigate("/")}>
           🏠 Rae
@@ -87,7 +86,6 @@ export default function LendPage() {
         </div>
       </div>
 
-      {/* ===== HERO ===== */}
       <div className="events-hero">
         <h1>Lend an Item</h1>
 
@@ -115,10 +113,8 @@ export default function LendPage() {
         </div>
       </div>
 
-      {/* ===== MAIN CONTENT WRAPPER ===== */}
       <div className="lend-container">
 
-        {/* ===== POST ITEM CARD ===== */}
         <div className="lend-section">
           <h2>Post a New Item</h2>
 
@@ -156,7 +152,6 @@ export default function LendPage() {
           </form>
         </div>
 
-        {/* ===== MY LISTED ITEMS CARD ===== */}
         <div className="lend-section">
           <h2>My Listed Items</h2>
 

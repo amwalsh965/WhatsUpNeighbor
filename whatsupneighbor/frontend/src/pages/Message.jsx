@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Bottom nav icons
 import calIcon from "../assets/calendar.png";
 import heartIcon from "../assets/heart.png";
 import chatIcon from "../assets/speech-bubble.png";
@@ -15,7 +14,6 @@ export default function MessagesPage() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [error, setError] = useState("");
 
-  // Fetch all chats for the current user
   useEffect(() => {
     async function fetchChats() {
       try {
@@ -26,7 +24,6 @@ export default function MessagesPage() {
             },
             });
         const data = await res.json();
-        // Transform the data to match the frontend structure
         const mappedChats = data.map((chat) => ({
           id: chat.id,
           name: chat.name,
@@ -81,7 +78,6 @@ export default function MessagesPage() {
       );
       const data = await res.json();
       if (data.success) {
-        // Update chat locally
         setSelectedChat((prev) => ({
           ...prev,
           messages: [
@@ -202,7 +198,6 @@ export default function MessagesPage() {
         </>
       )}
 
-      {/* Bottom nav */}
       <nav className="bottom-nav">
         <button className="nav-item" onClick={() => navigate("/events")}>
           <img className="nav-icon" src={calIcon} alt="Events" />

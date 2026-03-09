@@ -3,13 +3,12 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
-
+from django.db.models import Q
 from django.utils import timezone
 
 from datetime import datetime
 
 from .view_utils import *
-from django.shortcuts import render, get_object_or_404  # added a new import
 
 from django.contrib.auth.decorators import login_required
 
@@ -61,7 +60,6 @@ def login_view(request):
             {"success": False, "error": "Invalid credentials"}, status=401
         )
 
-    # Create JWT tokens
     refresh = RefreshToken.for_user(user)
 
     return JsonResponse(
@@ -110,10 +108,8 @@ def signup_view(request):
             {"success": False, "error": "Username already exists"}, status=400
         )
 
-    # Create user
     user = User.objects.create_user(username=username, password=password)
 
-    # Generate JWT tokens
     refresh = RefreshToken.for_user(user)
 
     return JsonResponse(
@@ -136,22 +132,23 @@ def current_user_view(request):
 @csrf_exempt
 @api_view(["GET", "POST", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
-def profile_views(request, user_id=None):
+def profile_views(request, profile_id=None):
     if request.method == "GET":
-        if user_id == "me":
+        if profile_id == "me":
             try:
-                profile = Profile.objects.get(user=request.user)
+                print(request.user)
+                profile = Profile.objects.get(user__username=request.user)
+                print(profile)
                 data = model_to_dict(profile)
                 data["username"] = profile.user.username
                 data["email"] = profile.user.email
                 return JsonResponse(data)
             except Profile.DoesNotExist:
                 return JsonResponse({"error": "Profile Not Found"}, status=404)
-        elif user_id:
+        elif profile_id:
             try:
-                profile = Profile.objects.get(pk=int(user_id))
+                profile = Profile.objects.get(pk=int(profile_id))
                 data = model_to_dict(profile)
-                # Include some basic user info
                 data["username"] = profile.user.username
                 data["email"] = profile.user.email
                 return JsonResponse(data)
@@ -170,7 +167,6 @@ def profile_views(request, user_id=None):
     elif request.method == "POST":
         try:
             data = json.loads(request.body)
-            # Then create the Profile
             user = User.objects.get(pk=request.user)
             profile = Profile.objects.create(
                 user=user,
@@ -184,16 +180,15 @@ def profile_views(request, user_id=None):
             return JsonResponse({"error": str(e)}, status=400)
 
     elif request.method == "PUT":
-        if not user_id:
+        if not profile_id:
             return JsonResponse({"error": "Need profile id"}, status=400)
         try:
-            profile = Profile.objects.get(pk=user_id)
+            profile = Profile.objects.get(pk=profile_id)
         except Profile.DoesNotExist:
             return JsonResponse({"error": "Profile Not Found"}, status=404)
 
         data = json.loads(request.body)
 
-        # Update User fields
         if "username" in data:
             profile.user.username = data["username"]
         if "email" in data:
@@ -206,7 +201,6 @@ def profile_views(request, user_id=None):
             profile.user.last_name = data["last_name"]
         profile.user.save()
 
-        # Update Profile fields
         profile.address = data.get("address", profile.address)
         profile.photo_url = data.get("photo_url", profile.photo_url)
         profile.bio = data.get("bio", profile.bio)
@@ -218,11 +212,11 @@ def profile_views(request, user_id=None):
         return JsonResponse(model_to_dict(profile))
 
     elif request.method == "DELETE":
-        if not user_id:
+        if not profile_id:
             return JsonResponse({"error": "Need profile id"}, status=400)
         try:
-            profile = Profile.objects.get(pk=user_id)
-            profile.user.delete()  # deletes the associated User as well
+            profile = Profile.objects.get(pk=profile_id)
+            profile.user.delete()
             profile.delete()
             return JsonResponse({"status": "deleted"})
         except Profile.DoesNotExist:
@@ -434,27 +428,8 @@ def load_more_view(request, key_word):
 def events_views(request):
     print("Running 0 ")
     try:
-        print("Running 1")
-        search_query = request.GET.get("search", "").strip()
 
         events = Events.objects.all()
-
-        if search_query:
-            search_filter = (
-                Q(title__icontains=search_query)
-                | Q(address__icontains=search_query)
-                | Q(description__icontains=search_query)
-            )
-            search_filter |= Q(host__user__first_name__icontains=search_query)
-            search_filter |= Q(host__user__last_name__icontains=search_query)
-
-            events = events.filter(search_filter)
-
-        # Make sure we select the correct related object
-        events = events.select_related("host").order_by("-date")
-        print(events)
-        print("Running2")
-
         data = [
             {
                 "id": event.id,
@@ -577,10 +552,7 @@ def my_chats(request):
     for chat in chats.distinct():
         messages = Message.objects.filter(chat=chat).order_by("timestamp")
         last_message = messages.last()
-
-        # Determine chat name
         if chat.transaction:
-            # Example: For group chat you can define it differently
             chat_name = f"Transaction {chat.transaction.id}"
         else:
             chat_name = "Chat"
@@ -589,7 +561,7 @@ def my_chats(request):
             {
                 "id": chat.id,
                 "name": chat_name,
-                "is_group": False,  # set True if you have real group chats
+                "is_group": False,
                 "last_message": {
                     "content": last_message.content if last_message else "",
                     "timestamp": (
@@ -598,7 +570,7 @@ def my_chats(request):
                         else timezone.now().isoformat()
                     ),
                 },
-                "unread_count": 0,  # You can customize unread count per user
+                "unread_count": 0,
                 "messages": [
                     {
                         "sender_name": msg.sender.user.first_name
@@ -654,31 +626,38 @@ def admin_views(request):
     pass
 
 
-@api_view(["GET", "POST", "PUT", "DELETE"])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def search_view(request):
-
-    query = request.GET.get("search", "")
-    models_header = request.headers.get("X-Search-Models", "")
-
-    models_requested = [m.strip() for m in models_header.split(",") if m]
+    query = request.GET.get("search", "").strip()
+    models_param = request.GET.get("models", "items")
+    models_requested = [m.strip() for m in models_param.split(",") if m]
 
     results = []
 
     if "items" in models_requested:
-
-        items = Item.objects.filter(name__icontains=query)[:25]
+        items = Item.objects.filter(
+            Q(name__icontains=query) | Q(category__icontains=query)
+        ).values("id", "name", "category", "status")[:25]
 
         for item in items:
-            results.append(
-                {
-                    "id": item.id,
-                    "type": "item",
-                    "name": item.name,
-                    "category": item.category,
-                    "status": item.status,
-                }
+            results.append({**item, "type": "item"})
+
+    if "events" in models_requested:
+        events = (
+            Events.objects.filter(
+                Q(title__icontains=query)
+                | Q(address__icontains=query)
+                | Q(description__icontains=query)
+                | Q(host__user__first_name__icontains=query)
+                | Q(host__user__last_name__icontains=query)
             )
+            .select_related("host")
+            .values("id", "title", "address", "description", "host_id")[:25]
+        )
+
+        for event in events:
+            results.append({**event, "type": "event"})
 
     return JsonResponse({"results": results})
 
@@ -690,9 +669,9 @@ def saved_items_view(request):
     Return all saved items for the current user.
     """
     user = request.user
+    profile = Profile.objects.get(user__username=user)
 
-    # Fetch saved associations for this user
-    saved_items = SavedAssociation.objects.filter(user=user).select_related("item")
+    saved_items = SavedAssociation.objects.filter(user=profile).select_related("item")
 
     results = []
     for assoc in saved_items:
@@ -701,7 +680,7 @@ def saved_items_view(request):
             {
                 "id": item.id,
                 "name": item.name,
-                "title": item.name,  # for frontend compatibility
+                "title": item.name,
                 "description": item.description,
                 "category": item.category,
                 "status": item.status,
@@ -711,58 +690,3 @@ def saved_items_view(request):
         )
 
     return JsonResponse({"results": results})
-
-
-@api_view(["GET", "POST", "PUT", "DELETE"])
-@permission_classes([IsAuthenticated])
-def profile_view(request):
-    try:
-        profile = Profile.objects.get(user=request.user)
-    except Profile.DoesNotExist:
-        return JsonResponse(
-            {"success": False, "error": "Profile not found"}, status=404
-        )
-
-    if request.method == "GET":
-        return JsonResponse(
-            {
-                "username": profile.user.username,
-                "first_name": profile.user.first_name,
-                "last_name": profile.user.last_name,
-                "address": profile.address,
-                "neighborhood": (
-                    profile.neighborhood.id if profile.neighborhood else None
-                ),
-                "photo_url": profile.photo_url or "",
-                "bio": profile.bio or "",
-                "role": profile.role,
-                "trust_rating": float(profile.trust_rating),
-                "trust_total_transactions": profile.trust_total_transactions,
-                "trust_returns_missing": profile.trust_returns_missing,
-                "trust_damaged_count": profile.trust_damaged_count,
-                "trust_late_count": profile.trust_late_count,
-            }
-        )
-
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            profile.address = data.get("address", profile.address)
-
-            neighborhood_id = data.get("neighborhood")
-            if neighborhood_id:
-                try:
-                    profile.neighborhood = Neighborhood.objects.get(id=neighborhood_id)
-                except Neighborhood.DoesNotExist:
-                    return JsonResponse(
-                        {"success": False, "error": "Neighborhood not found"},
-                        status=400,
-                    )
-
-            profile.photo_url = data.get("photo_url", profile.photo_url)
-            profile.bio = data.get("bio", profile.bio)
-            profile.save()
-
-            return JsonResponse({"success": True})
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)}, status=400)

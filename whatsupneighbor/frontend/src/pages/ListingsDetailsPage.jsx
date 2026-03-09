@@ -7,21 +7,17 @@ import "./../index.css"
 export default function ListingDetailsPage() {
   return (
     <div className="ld-screen">
-      {/* Top bar */}
       <div className="ld-topbar">
         <button className="ld-back-btn" type="button">
           <img className="ld-back-icon" src={backArrow} alt="Back" />
         </button>
       </div>
 
-      {/* Body */}
       <div className="ld-body">
-        {/* Left: Image */}
         <div className="ld-left">
           <img className="ld-image" src={kayakImg} alt="Kayak listing" />
         </div>
 
-        {/* Right: options */}
         <div className="ld-right">
           <button className="ld-outline-btn" type="button">
             Description

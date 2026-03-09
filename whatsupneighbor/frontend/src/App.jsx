@@ -13,7 +13,6 @@ import ConnectPage from "./pages/ConnectPage";
 import TrustFeedback from "./pages/TrustFeedback";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-//Change Event to EventsPage in import and down below (for Sayman)
 function App() {
   return (
     <Router>

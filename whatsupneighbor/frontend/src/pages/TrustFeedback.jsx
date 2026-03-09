@@ -34,7 +34,7 @@ export default function TrustFeedback() {
             },
             
       method: "POST",
-      credentials: "include", // send cookies
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...trustData,
@@ -54,7 +54,7 @@ export default function TrustFeedback() {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
             },
-            }) // send cookies);
+            })
     const data = await res.json();
     setSingleFeedback(data);
   };
@@ -65,7 +65,7 @@ export default function TrustFeedback() {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
             },
-            }) // send cookies);
+            })
     const data = await res.json();
     setAllFeedback(data);
     setSingleFeedback(null);

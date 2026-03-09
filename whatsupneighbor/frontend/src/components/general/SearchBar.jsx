@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 
 function SearchBar({
-  models = ["items"],   // allow multiple
+  models = ["items"],
   outline = false,
   width = "100%",
   minLength = 2,
@@ -9,8 +9,9 @@ function SearchBar({
   onResults,
   placeholder = "Search...",
 }) {
-    
-    const token = localStorage.getItem("accessToken");
+  const stableModels = useMemo(() => models, [models.join(",")]);
+
+  const token = localStorage.getItem("accessToken");
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -66,7 +67,7 @@ function SearchBar({
 
     fetchResults();
 
-  }, [debouncedQuery, minLength]);
+  }, [debouncedQuery, minLength, stableModels]);
 
   return (
     <input

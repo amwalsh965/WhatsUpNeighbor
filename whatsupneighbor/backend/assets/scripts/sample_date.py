@@ -25,9 +25,9 @@ def import_all_sample_data():
     neighborhoods = list(Neighborhood.objects.all())
 
     profile_list = []
-    for i in range(10):  # generate 10 sample users
+    for i in range(10):
         username = f"user{i+1}"
-        password = "password123"  # hashed automatically by Django
+        password = "password123"
         email = f"{username}@example.com"
 
         user = User.objects.create_user(
