@@ -8,13 +8,12 @@ export default function EventsPage() {
   const [visibleEvents, setVisibleEvents] = useState(6);
   const [visibleItems, setVisibleItems] = useState(6);
 
-  // ===== EVENT DATA =====
   const eventTypes = [
     "Community", "Private", "Sale", "Volunteer", "Sports",
     "Workshop", "Festival", "Fundraiser", "Networking",
     "Food Drive", "Art Show", "Farmers Market",
     "Yoga Session", "Book Club", "Music Night",
-    "Tech Meetup", "Outdoor Movie", "Charity Run", "Block party :)", "Birthday Party"
+    "Tech Meetup", "Outdoor Movie", "Charity Fundraiser", "Block Party", "Birthday Party"
   ];
 
   const locations = [
@@ -35,7 +34,6 @@ export default function EventsPage() {
     "Expand your network and learn something new."
   ];
 
-  // ===== ITEM DATA =====
   const itemNames = [
     "Ladder", "Drill", "Kayak", "Camera", "Tent",
     "Bike", "Projector", "Table", "Speakers", "Grill",
@@ -53,7 +51,8 @@ export default function EventsPage() {
     "Isabella", "Ethan", "Mia", "Harper", "Elijah"
   ];
 
-  // ===== GENERATE EVENTS =====
+  // event list
+  // get real later
   const events = useMemo(() =>
     Array.from({ length: 500 }, (_, i) => ({
       id: i + 1,
@@ -65,7 +64,7 @@ export default function EventsPage() {
     })), []
   );
 
-  // ===== GENERATE ITEMS =====
+  // items
   const items = useMemo(() =>
     Array.from({ length: 500 }, (_, i) => ({
       id: i + 1,
@@ -75,7 +74,7 @@ export default function EventsPage() {
     })), []
   );
 
-  // ===== FILTER =====
+  // filter
   const filteredEvents = events.filter(e =>
     e.title.toLowerCase().includes(search.toLowerCase()) ||
     e.type.toLowerCase().includes(search.toLowerCase()) ||
@@ -90,7 +89,7 @@ export default function EventsPage() {
   return (
     <div className="events-page">
 
-      {/* ===== TOP BAR ===== */}
+      {/* top bar */}
       <div className="topbar">
         <div className="logo-left" onClick={() => navigate("/")}>
           🏠 Rae
@@ -102,7 +101,7 @@ export default function EventsPage() {
 
       </div>
 
-      {/* ===== HERO ===== */}
+      {/* main selecting */}
       <div className="events-hero">
         <h1>Neighborhood Hub</h1>
 
@@ -153,7 +152,7 @@ export default function EventsPage() {
         />
       </div>
 
-      {/* ===== EVENTS SECTION ===== */}
+      {/* events */}
       <h2 className="section-title">Recent Events</h2>
 
       <div className="event-grid">

@@ -270,6 +270,80 @@ class MessageViews:
         self.message = None
         return True
 
+class SavedListing:
+    def __init__(self, pk: int):
+        try:
+            self.saved_listing = SavedListing.objects.get(pk=pk)
+        except SavedListing.DoesNotExist:
+            self.saved_listing = None
+
+    def create_saved_listing(self, user: User, listing: Listing):
+        if listing.user_id == user.pk:
+            raise ValidationError("Users cannot save their own listing.")
+
+        existing_saved = SavedListing.objects.filter(user=user, listing=listing).first()
+        if existing_saved:
+            return existing_saved
+
+        new_saved_listing = SavedListing.objects.create(
+            user=user,
+            listing=listing,
+        )
+        new_saved_listing.save()
+        return new_saved_listing
+
+    def get_saved_listings_by_user(self, user_id: int):
+        return SavedListing.objects.filter(user_id=user_id).select_related("listing", "user")
+
+    def get_saved_listing(self):
+        return self.saved_listing
+
+    def is_listing_saved(self, user: User, listing: Listing):
+        return SavedListing.objects.filter(user=user, listing=listing).exists()
+
+    def toggle_saved_listing(self, user: User, listing: Listing):
+         existing_saved = SavedListing.objects.filter(user=user, listing=listing).first()
+
+        if existing_saved:
+            existing_saved.delete()
+            return {
+                "saved": False,
+                "message": "Listing removed from saved items."
+            }
+
+        if listing.user_id == user.pk:
+            raise ValidationError("Users cannot save their own listing.")
+
+        new_saved_listing = SavedListing.objects.create(
+            user=user,
+            listing=listing,
+        )
+        new_saved_listing.save()
+
+        return {
+            "saved": True,
+            "message": "Listing saved successfully.",
+            "saved_listing": new_saved_listing
+        }
+
+    def delete_saved_listing(self):
+        if self.saved_listing is None:
+            return False
+
+        self.saved_listing.delete()
+        self.saved_listing = None
+        return True
+
+    def delete_saved_listing_by_user_and_listing(self, user: User, listing: Listing):
+        saved_listing = SavedListing.objects.filter(user=user, listing=listing).first()
+
+        if not saved_listing:
+            return False
+
+        saved_listing.delete()
+        return True
+
+
 class ItemViews:
     pass
 

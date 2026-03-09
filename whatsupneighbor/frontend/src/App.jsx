@@ -12,6 +12,10 @@ import Saved from "./pages/Saved";
 import LendPage from "./pages/LendPage";
 import ConnectPage from "./pages/ConnectPage";
 import TrustFeedback from "./pages/TrustFeedback";
+import TransactionHistory from "./pages/TransactionHistory";
+import SearchMember from "./pages/SearchMember";
+import ViewProfile from "./pages/ViewProfile";
+
 
 //Change Event to EventsPage in import and down below (for Sayman)
 function App() {
@@ -31,6 +35,9 @@ function App() {
         <Route path="/lend" element={<LendPage />} />
         <Route path="/connect" element={<ConnectPage />} />
         <Route path="/trust-feedback" element={<TrustFeedback />} />
+        <Route path="/members/:id/transactions" element={<TransactionHistory />} />
+        <Route path="/search-members" element={<SearchMember />} />
+        <Route path="/members/:id" element={<ViewProfile />} />
 
       </Routes>
     </Router>

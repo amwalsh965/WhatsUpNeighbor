@@ -56,7 +56,7 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      {/* ===== Bottom Navigation ===== */}
+      {/* bottom nav */}
       <nav className="bottom-nav">
 
         {/* Events */}

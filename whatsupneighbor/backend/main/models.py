@@ -244,5 +244,16 @@ class EventUserAssociation(models.Model):
     event = models.ForeignKey(Events, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
+# izabela added
+class SavedListing(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    saved_At = models.DateTimeField(auto_now=True)
+
+    class Meta: # just to avoid duplicates but can be removed to match other tables' format
+        unique_together = ('user', 'listing')
+
+    def __str__(self):
+        return f"{self.user} saved {self.listing}"
 
 # Adam End

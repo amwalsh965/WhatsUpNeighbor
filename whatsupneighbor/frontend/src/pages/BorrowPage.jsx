@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
-/* ===== IMPORT LOCAL IMAGES ===== */
 import ladderImg from "../assets/ladder.png";
 import powerDrillImg from "../assets/powerdrill.png";
 import projectorImg from "../assets/projector.png";
@@ -16,7 +15,9 @@ import kayakImg from "../assets/kayak.png";
 import speakerImg from "../assets/speaker.png";
 import campingImg from "../assets/campings.png";
 import fishingImg from "../assets/fishingr.png";
-import toolkitImg from "../assets/toolkit.png"; // if this errors, change to "../assets/toolkit.png"
+import toolkitImg from "../assets/toolkit.png";
+import profile from "../assets/avatar-icon.png";
+import realogo from "../assets/WhatsUpNeighborAppIcon.png";
 
 export default function BorrowPage() {
   const navigate = useNavigate();
@@ -45,7 +46,6 @@ export default function BorrowPage() {
     "Message me before pickup.",
   ];
 
-  /* ===== IMAGE MAP ===== */
   const imageMap = {
     "Ladder": ladderImg,
     "Power Drill": powerDrillImg,
@@ -64,12 +64,12 @@ export default function BorrowPage() {
     "Tool Kit": toolkitImg,
   };
 
-  /* ===== FAVORITE TOGGLE ===== */
+  //toggle
   const toggleFavorite = (id) => {
     setFavorites((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
-  /* ===== GENERATE 500 ITEMS ===== */
+  // 500 items
   const items = useMemo(
     () =>
       Array.from({ length: 500 }, (_, i) => {
@@ -96,15 +96,21 @@ export default function BorrowPage() {
 
   return (
     <div className="events-page">
-      {/* TOP BAR */}
+      {/* top bar */}
       <div className="topbar">
-        <div className="logo-left" onClick={() => navigate("/")}>
-          🏠 Rae
-        </div>
+        <img
+          src={realogo}
+          alt="Logo"
+          className="logo-left"
+          onClick={() => navigate("/home")}
+        />
 
-        <div className="profile-right" onClick={() => navigate("/profile")}>
-          👤
-        </div>
+        <img
+          src={profile}
+          alt="Profile"
+          className="profile-right"
+          onClick={() => navigate("/profile")}
+        />
       </div>
 
       {/* HERO */}
@@ -125,13 +131,13 @@ export default function BorrowPage() {
           </NavLink>
 
           <NavLink
-  to="/connect"
-  className={({ isActive }) =>
-    isActive ? "nav-link active" : "nav-link"
-  }
->
-  Connect
-</NavLink>
+            to="/connect"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            Connect
+          </NavLink>
         </div>
 
         <input
