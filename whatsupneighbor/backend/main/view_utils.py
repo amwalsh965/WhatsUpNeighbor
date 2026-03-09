@@ -212,19 +212,18 @@ class NeighborhoodViews:
     def __init__(self, pk: int):
         try:
             self.neighborhood = Neighborhood.objects.get(pk=pk)
-    
+
         except Neighborhood.DoesNotExist:
             self.neighborhood = None
 
     # get listings for a neighborhood
     def get_listings(self):
-        return Listing.objects.filter(neighborhood = self.neighborhood.pk)  
+        return Listing.objects.filter(neighborhood=self.neighborhood.pk)
 
-    #get users for a neighborhood
+    # get users for a neighborhood
     def get_users(self):
-        return User.objects.filter(neighborhood = self.neighborhood.pk)   
-            
-      
+        return User.objects.filter(neighborhood=self.neighborhood.pk)
+
 
 class ChatViews:
     def __init__(self, pk: int):
@@ -234,7 +233,7 @@ class ChatViews:
             self.chat = None
 
     def transactionChat(transaction_id):
-        return Chat.objects.filter(transaction_id = transaction_id)
+        return Chat.objects.filter(transaction_id=transaction_id)
 
     def get_chat(self):
         return self.chat
@@ -257,11 +256,11 @@ class MessageViews:
         return new_message
 
     def update_message(self, content: str):
-        self.message.content = content 
+        self.message.content = content
         self.message.timestamp = timezone.now()
         self.message.save()
         return self.message
-    
+
     def get_messages_by_chat(self, chat_id):
         return Message.objects.filter(chat_id=chat_id).order_by("timestamp")
 
@@ -269,6 +268,7 @@ class MessageViews:
         self.message.delete()
         self.message = None
         return True
+
 
 class SavedListing:
     def __init__(self, pk: int):
@@ -293,7 +293,9 @@ class SavedListing:
         return new_saved_listing
 
     def get_saved_listings_by_user(self, user_id: int):
-        return SavedListing.objects.filter(user_id=user_id).select_related("listing", "user")
+        return SavedListing.objects.filter(user_id=user_id).select_related(
+            "listing", "user"
+        )
 
     def get_saved_listing(self):
         return self.saved_listing
@@ -302,14 +304,11 @@ class SavedListing:
         return SavedListing.objects.filter(user=user, listing=listing).exists()
 
     def toggle_saved_listing(self, user: User, listing: Listing):
-         existing_saved = SavedListing.objects.filter(user=user, listing=listing).first()
+        existing_saved = SavedListing.objects.filter(user=user, listing=listing).first()
 
         if existing_saved:
             existing_saved.delete()
-            return {
-                "saved": False,
-                "message": "Listing removed from saved items."
-            }
+            return {"saved": False, "message": "Listing removed from saved items."}
 
         if listing.user_id == user.pk:
             raise ValidationError("Users cannot save their own listing.")
@@ -323,7 +322,7 @@ class SavedListing:
         return {
             "saved": True,
             "message": "Listing saved successfully.",
-            "saved_listing": new_saved_listing
+            "saved_listing": new_saved_listing,
         }
 
     def delete_saved_listing(self):
