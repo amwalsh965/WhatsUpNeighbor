@@ -63,22 +63,42 @@ export default function HomeScreen() {
           </div>
         </div>
       </div>
+
+      {/* ===== Bottom Navigation ===== */}
       <nav className="bottom-nav">
-        <button className="nav-item" onClick={() => navigate("/events")}>
+
+        {/* Events */}
+        <button
+          className="nav-item"
+          onClick={() => navigate("/events")}
+        >
           <img className="nav-icon" src={calIcon} alt="Events" />
         </button>
 
-        <button className="nav-item" onClick={() => navigate("/saved")}>
+        {/* Saved */}
+        <button
+          className="nav-item"
+          onClick={() => navigate("/saved")}
+        >
           <img className="nav-icon" src={heartIcon} alt="Saved" />
         </button>
 
-        <button className="nav-item" onClick={() => navigate("/messages")}>
+        {/* Messages */}
+        <button
+          className="nav-item"
+          onClick={() => navigate("/messages")}
+        >
           <img className="nav-icon" src={chatIcon} alt="Messages" />
         </button>
 
-        <button className="nav-item" onClick={() => navigate("/profile")}>
+        {/* Profile */}
+        <button
+          className="nav-item"
+          onClick={() => navigate("/profile")}
+        >
           <img className="nav-icon" src={userIcon} alt="Profile" />
         </button>
+
       </nav>
     </div>
   );

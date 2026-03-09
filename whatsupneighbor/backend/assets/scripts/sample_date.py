@@ -1,24 +1,162 @@
 from datetime import timedelta
 import random
+import time
+
+import requests
 from main.models import *
 from django.utils import timezone
 
 
+def create_points():
+
+    def geocode_address(street, city, state, zip_code, country):
+        query = f"{street}, {city}, {state}, {zip_code}, {country}"
+        print(query)
+        url = "https://nominatim.openstreetmap.org/search"
+        params = {"q": query, "format": "json", "limit": 1}
+        headers = {"User-Agent": "my-app"}
+        try:
+            print(1)
+            res = requests.get(url, params=params, headers=headers, timeout=10)
+            res.raise_for_status()
+            data = res.json()
+            print(data)
+            print(2)
+            if not data:
+                return None
+            return float(data[0]["lat"]), float(data[0]["lon"])
+        except (requests.RequestException, ValueError) as e:
+            print(3)
+            print("Geocode error:", e)
+            return None
+
+    address_objects = Address.objects.all()
+
+    for i, address_object in enumerate(address_objects):
+        if i <= 31:
+            continue
+        try:
+            lat1, lon1 = geocode_address(
+                address_object.street,
+                address_object.city,
+                address_object.state,
+                address_object.zip_code,
+                address_object.country,
+            )
+            time.sleep(3)
+            address_object.latitude = lat1
+            address_object.longitude = lon1
+            address_object.save()
+            print("found geolocation", i + 1)
+        except:
+            print("geolocation not found", i + 1)
+
+
 def import_all_sample_data():
+    from main.models import Address
+
+    addresses = [
+        ("1243 W Boston Blvd", "Detroit", "MI", "48202"),
+        ("5821 Livernois Ave", "Detroit", "MI", "48210"),
+        ("9123 Strathcona Dr", "Detroit", "MI", "48221"),
+        ("6732 McNichols Rd", "Detroit", "MI", "48221"),
+        ("4510 Woodward Ave", "Detroit", "MI", "48201"),
+        ("3327 Trumbull St", "Detroit", "MI", "48208"),
+        ("2184 Rosa Parks Blvd", "Detroit", "MI", "48216"),
+        ("7640 Seven Mile Rd", "Detroit", "MI", "48221"),
+        ("4901 Grand River Ave", "Detroit", "MI", "48208"),
+        ("2900 Cass Ave", "Detroit", "MI", "48201"),
+        ("412 W Liberty St", "Ann Arbor", "MI", "48103"),
+        ("702 S Ashley St", "Ann Arbor", "MI", "48104"),
+        ("1345 Pauline Blvd", "Ann Arbor", "MI", "48103"),
+        ("825 Packard St", "Ann Arbor", "MI", "48104"),
+        ("2903 Dexter Rd", "Ann Arbor", "MI", "48103"),
+        ("1187 Huron Pkwy", "Ann Arbor", "MI", "48105"),
+        ("400 Miller Ave", "Ann Arbor", "MI", "48103"),
+        ("1520 Washtenaw Ave", "Ann Arbor", "MI", "48104"),
+        ("2665 Plymouth Rd", "Ann Arbor", "MI", "48105"),
+        ("523 Maple Rd", "Ann Arbor", "MI", "48103"),
+        ("1342 Lake Dr SE", "Grand Rapids", "MI", "49506"),
+        ("908 Wealthy St SE", "Grand Rapids", "MI", "49506"),
+        ("311 Fuller Ave NE", "Grand Rapids", "MI", "49503"),
+        ("762 Leonard St NW", "Grand Rapids", "MI", "49504"),
+        ("522 Diamond Ave NE", "Grand Rapids", "MI", "49503"),
+        ("240 Union Ave SE", "Grand Rapids", "MI", "49503"),
+        ("1732 Plainfield Ave NE", "Grand Rapids", "MI", "49505"),
+        ("1890 Kalamazoo Ave SE", "Grand Rapids", "MI", "49507"),
+        ("950 Cherry St SE", "Grand Rapids", "MI", "49506"),
+        ("431 Bridge St NW", "Grand Rapids", "MI", "49504"),
+        ("1500 W Michigan Ave", "Lansing", "MI", "48915"),
+        ("223 S Cedar St", "Lansing", "MI", "48912"),
+        ("640 E Saginaw St", "Lansing", "MI", "48906"),
+        ("1125 N Washington Ave", "Lansing", "MI", "48906"),
+        ("735 Kalamazoo St", "Lansing", "MI", "48912"),
+        ("4901 S Martin Luther King Jr Blvd", "Lansing", "MI", "48910"),
+        ("1820 E Grand River Ave", "Lansing", "MI", "48912"),
+        ("3415 W St Joseph St", "Lansing", "MI", "48917"),
+        ("711 N Pennsylvania Ave", "Lansing", "MI", "48906"),
+        ("2950 Delta River Dr", "Lansing", "MI", "48906"),
+        ("842 Orchard Lake Rd", "Pontiac", "MI", "48341"),
+        ("3315 Elizabeth Lake Rd", "Waterford", "MI", "48328"),
+        ("5712 Dixie Hwy", "Clarkston", "MI", "48346"),
+        ("4045 Baldwin Rd", "Auburn Hills", "MI", "48326"),
+        ("2920 Crooks Rd", "Troy", "MI", "48084"),
+        ("1560 Adams Rd", "Rochester Hills", "MI", "48309"),
+        ("910 Opdyke Rd", "Auburn Hills", "MI", "48326"),
+        ("2840 Walton Blvd", "Rochester Hills", "MI", "48309"),
+        ("4700 Sashabaw Rd", "Clarkston", "MI", "48346"),
+        ("3650 Joslyn Rd", "Orion Township", "MI", "48360"),
+    ]
+
+    address_objects = []
+    for street, city, state, zip_code in addresses:
+        address = Address.objects.create(
+            street=street, city=city, state=state, zip_code=zip_code, country="USA"
+        )
+
+        address_objects.append(address)
+
+    address1 = Address.objects.create(
+        street="7432 Foxburg Ct",
+        city="Clarkston",
+        state="MI",
+        zip_code="48348",
+        country="USA",
+    )
+
+    print("Addresses added successfully.")
 
     # Neighborhoods
-    neighborhood1 = Neighborhood.objects.create(name="Neighborhood A", zip=48348)
-
-    neighborhood2 = Neighborhood.objects.create(name="Neighborhood B", zip=48346)
-
-    neighborhood3 = Neighborhood.objects.create(name="Neighborhood C", zip=93849)
-    neighborhood4 = Neighborhood.objects.create(name="Neighborhood C", zip=48348)
-    neighborhood5 = Neighborhood.objects.create(name="Neighborhood D", zip=48348)
-    neighborhood6 = Neighborhood.objects.create(name="Neighborhood E", zip=48348)
-    neighborhood7 = Neighborhood.objects.create(name="Neighborhood F", zip=48348)
-    neighborhood8 = Neighborhood.objects.create(name="Neighborhood G", zip=48348)
-    neighborhood9 = Neighborhood.objects.create(name="Neighborhood H", zip=48348)
-    neighborhood10 = Neighborhood.objects.create(name="Neighborhood I", zip=48348)
+    neighborhood1 = Neighborhood.objects.create(
+        name="Neighborhood A", address=random.choice(address_objects)
+    )
+    neighborhood2 = Neighborhood.objects.create(
+        name="Neighborhood B", address=random.choice(address_objects)
+    )
+    neighborhood3 = Neighborhood.objects.create(
+        name="Neighborhood C", address=random.choice(address_objects)
+    )
+    neighborhood4 = Neighborhood.objects.create(
+        name="Neighborhood C", address=random.choice(address_objects)
+    )
+    neighborhood5 = Neighborhood.objects.create(
+        name="Neighborhood D", address=random.choice(address_objects)
+    )
+    neighborhood6 = Neighborhood.objects.create(
+        name="Neighborhood E", address=random.choice(address_objects)
+    )
+    neighborhood7 = Neighborhood.objects.create(
+        name="Neighborhood F", address=random.choice(address_objects)
+    )
+    neighborhood8 = Neighborhood.objects.create(
+        name="Neighborhood G", address=random.choice(address_objects)
+    )
+    neighborhood9 = Neighborhood.objects.create(
+        name="Neighborhood H", address=random.choice(address_objects)
+    )
+    neighborhood10 = Neighborhood.objects.create(
+        name="Neighborhood I", address=random.choice(address_objects)
+    )
 
     first_names = ["Alice", "Bob", "Charlie", "Danielle", "Evan", "Sophia"]
     last_names = ["Smith", "Johnson", "Williams", "Brown", "Jones"]
@@ -40,7 +178,7 @@ def import_all_sample_data():
 
         profile = Profile.objects.create(
             user=user,
-            address=f"{random.randint(100, 999)} Main St",
+            address=address1,
             neighborhood=random.choice(neighborhoods),
             bio="This is a sample bio.",
             role="neighbor",

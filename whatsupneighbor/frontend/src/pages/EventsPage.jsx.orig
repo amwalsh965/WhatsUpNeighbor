@@ -12,12 +12,54 @@ export default function EventsPage() {
   const [visibleEvents, setVisibleEvents] = useState(6);
   const [loading, setLoading] = useState(true);
 
+<<<<<<< HEAD
+||||||| 47fafbd
+  // ===== EVENT DATA =====
+  const eventTypes = [
+    "Community", "Private", "Sale", "Volunteer", "Sports",
+    "Workshop", "Festival", "Fundraiser", "Networking",
+    "Food Drive", "Art Show", "Farmers Market",
+    "Yoga Session", "Book Club", "Music Night",
+    "Tech Meetup", "Outdoor Movie", "Charity Run", "Block party :)", "Birthday Party"
+  ];
+=======
+  const eventTypes = [
+    "Community", "Private", "Sale", "Volunteer", "Sports",
+    "Workshop", "Festival", "Fundraiser", "Networking",
+    "Food Drive", "Art Show", "Farmers Market",
+    "Yoga Session", "Book Club", "Music Night",
+    "Tech Meetup", "Outdoor Movie", "Charity Fundraiser", "Block Party", "Birthday Party"
+  ];
+>>>>>>> izabela-pages
 
   useEffect(() => {
 
     async function fetchEvents() {
 
+<<<<<<< HEAD
       try {
+||||||| 47fafbd
+  // ===== ITEM DATA =====
+  const itemNames = [
+    "Ladder", "Drill", "Kayak", "Camera", "Tent",
+    "Bike", "Projector", "Table", "Speakers", "Grill",
+    "Snow Blower", "Pressure Washer", "Camping Stove",
+    "Generator", "Power Saw", "Lawn Mower",
+    "Fishing Rod", "Basketball Hoop", "Air Pump",
+    "Extension Cord", "Tool Kit", "Car Jack",
+    "Folding Chairs", "Cooler", "Hedge Trimmer"
+  ];
+=======
+  const itemNames = [
+    "Ladder", "Drill", "Kayak", "Camera", "Tent",
+    "Bike", "Projector", "Table", "Speakers", "Grill",
+    "Snow Blower", "Pressure Washer", "Camping Stove",
+    "Generator", "Power Saw", "Lawn Mower",
+    "Fishing Rod", "Basketball Hoop", "Air Pump",
+    "Extension Cord", "Tool Kit", "Car Jack",
+    "Folding Chairs", "Cooler", "Hedge Trimmer"
+  ];
+>>>>>>> izabela-pages
 
         const res = await fetch("http://127.0.0.1:8000/main/events/", {
             headers: {
@@ -28,18 +70,83 @@ export default function EventsPage() {
         if (!res.ok) {
           console.error("Request failed:", res.status);
 
+<<<<<<< HEAD
           if (res.status === 401) {
             navigate("/auth");
             return;
           }
+||||||| 47fafbd
+  // ===== GENERATE EVENTS =====
+  const events = useMemo(() =>
+    Array.from({ length: 500 }, (_, i) => ({
+      id: i + 1,
+      title: `${eventTypes[i % eventTypes.length]} Event ${i + 1}`,
+      type: eventTypes[i % eventTypes.length],
+      date: `Mar ${1 + (i % 28)}`,
+      location: locations[i % locations.length],
+      description: eventDescriptions[i % eventDescriptions.length]
+    })), []
+  );
+=======
+  // event list
+  // get real later
+  const events = useMemo(() =>
+    Array.from({ length: 500 }, (_, i) => ({
+      id: i + 1,
+      title: `${eventTypes[i % eventTypes.length]} Event ${i + 1}`,
+      type: eventTypes[i % eventTypes.length],
+      date: `Mar ${1 + (i % 28)}`,
+      location: locations[i % locations.length],
+      description: eventDescriptions[i % eventDescriptions.length]
+    })), []
+  );
+>>>>>>> izabela-pages
 
+<<<<<<< HEAD
           setEvents([]);
           setFilteredEvents([]);
           return;
         }
         const data = await res.json();
+||||||| 47fafbd
+  // ===== GENERATE ITEMS =====
+  const items = useMemo(() =>
+    Array.from({ length: 500 }, (_, i) => ({
+      id: i + 1,
+      name: `${itemNames[i % itemNames.length]} ${i + 1}`,
+      status: i % 4 === 0 ? "Borrowed" : "Available",
+      owner: owners[i % owners.length]
+    })), []
+  );
+=======
+  // items
+  const items = useMemo(() =>
+    Array.from({ length: 500 }, (_, i) => ({
+      id: i + 1,
+      name: `${itemNames[i % itemNames.length]} ${i + 1}`,
+      status: i % 4 === 0 ? "Borrowed" : "Available",
+      owner: owners[i % owners.length]
+    })), []
+  );
+>>>>>>> izabela-pages
 
+<<<<<<< HEAD
         const results = data.results || data;
+||||||| 47fafbd
+  // ===== FILTER =====
+  const filteredEvents = events.filter(e =>
+    e.title.toLowerCase().includes(search.toLowerCase()) ||
+    e.type.toLowerCase().includes(search.toLowerCase()) ||
+    e.location.toLowerCase().includes(search.toLowerCase())
+  );
+=======
+  // filter
+  const filteredEvents = events.filter(e =>
+    e.title.toLowerCase().includes(search.toLowerCase()) ||
+    e.type.toLowerCase().includes(search.toLowerCase()) ||
+    e.location.toLowerCase().includes(search.toLowerCase())
+  );
+>>>>>>> izabela-pages
 
         setEvents(results);
         setFilteredEvents(results);
@@ -81,7 +188,12 @@ export default function EventsPage() {
   return (
     <div className="events-page">
 
+<<<<<<< HEAD
+||||||| 47fafbd
       {/* ===== TOP BAR ===== */}
+=======
+      {/* top bar */}
+>>>>>>> izabela-pages
       <div className="topbar">
 
         <div className="logo-left" onClick={() => navigate("/")}>
@@ -94,7 +206,12 @@ export default function EventsPage() {
 
       </div>
 
+<<<<<<< HEAD
+||||||| 47fafbd
       {/* ===== HERO ===== */}
+=======
+      {/* main selecting */}
+>>>>>>> izabela-pages
       <div className="events-hero">
         <h1>Neighborhood Hub</h1>
         <p>Events • Borrow • Lend • Connect</p>
@@ -147,9 +264,15 @@ export default function EventsPage() {
 
       </div>
 
+<<<<<<< HEAD
       <h2 className="section-title">Upcoming Events</h2>
 
 
+||||||| 47fafbd
+      {/* ===== EVENTS SECTION ===== */}
+=======
+      {/* events */}
+>>>>>>> izabela-pages
       <h2 className="section-title">Recent Events</h2>
 
       {loading ? (
@@ -197,8 +320,6 @@ export default function EventsPage() {
               ))}
 
           </div>
-        
-
 
 
           {visibleEvents < eventsToRender.length && (
@@ -228,5 +349,6 @@ export default function EventsPage() {
       )}
 
     </div>
+
   );
 }

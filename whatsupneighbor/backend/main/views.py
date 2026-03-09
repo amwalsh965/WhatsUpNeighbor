@@ -1,3 +1,5 @@
+import math
+
 from django.forms import model_to_dict
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -21,17 +23,21 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-
-# from assets.scripts.create_events import create_events
-# from assets.scripts.sample_date import import_all_sample_data
+import requests
 
 
-# def test(request):
-#     print("Creating events")
-#     import_all_sample_data()
-#     create_events()
+from assets.scripts.create_events import create_events
+from assets.scripts.sample_date import import_all_sample_data, create_points
 
-#     return render({"created_events": "Created Events"})
+
+def test(request):
+    print("Creating events")
+    # import_all_sample_data()
+    # create_events()
+    # create_points()
+
+    print("done")
+    return render({"created_events": "Created Events"})
 
 
 # in frontend would be called by fetch("/users")
@@ -73,16 +79,94 @@ def login_view(request):
 
 
 @csrf_exempt
+def find_nearest_neighborhood(request):
+    print("Finding Neighborhood")
+
+    data = json.loads(request.body)
+
+    address_object, _ = Address.objects.get_or_create(
+        street=data.get("street"),
+        city=data.get("city"),
+    )
+    address = address_object.full_address()
+    print(address)
+    neighborhoods = Neighborhood.objects.all()
+
+    def geocode_address(city, state, zip_code, country):
+        query = f"{city}, {state}, {zip_code}, {country}"
+        print(query)
+        url = "https://nominatim.openstreetmap.org/search"
+        params = {"q": query, "format": "json", "limit": 1}
+        headers = {"User-Agent": "my-app"}
+        try:
+            print(1)
+            res = requests.get(url, params=params, headers=headers, timeout=10)
+            res.raise_for_status()
+            data = res.json()
+            print(data)
+            print(2)
+            if not data:
+                return None
+            return float(data[0]["lat"]), float(data[0]["lon"])
+        except (requests.RequestException, ValueError) as e:
+            print(3)
+            print("Geocode error:", e)
+            return None
+
+    def distance(lat1, lon1, lat2, lon2):
+        R = 6371  # Earth radius in km
+
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+
+        a = (
+            math.sin(dlat / 2) ** 2
+            + math.cos(math.radians(lat1))
+            * math.cos(math.radians(lat2))
+            * math.sin(dlon / 2) ** 2
+        )
+
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return R * c
+
+    lat1, lon1 = geocode_address(
+        address_object.city,
+        address_object.state,
+        address_object.zip_code,
+        address_object.country,
+    )
+    address_object.latitude = lat1
+    address_object.longitude = lon1
+    address_object.save()
+    print("found geolocation")
+
+    closest = None
+    closest_dist = float("inf")
+
+    for entry in neighborhoods:
+        if entry.address.latitude is None or entry.address.longitude is None:
+            continue
+        d = distance(lat1, lon1, entry.address.latitude, entry.address.longitude)
+
+        if d < closest_dist:
+            closest_dist = d
+            closest = entry
+
+    print("found closest neighborhood", closest.pk)
+    return JsonResponse(
+        {
+            "success": True,
+            "neighborhood_pk": closest.pk,
+            "neighborhood": closest.name,
+            "address_id": address_object.pk,
+        }
+    )
+
+
+@csrf_exempt
 def logout_view(request):
     logout(request)
     return JsonResponse({"success": True})
-
-
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from django.contrib.auth.models import User
-from rest_framework_simplejwt.tokens import RefreshToken
-import json
 
 
 @csrf_exempt
@@ -91,35 +175,67 @@ def signup_view(request):
         return JsonResponse({"error": "POST required"}, status=400)
 
     try:
-        data = json.loads(request.body)
+        print("working 1")
+        print(request.POST)
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        email = request.POST.get("email")
+        bio = request.POST.get("bio")
+        first_name = request.POST.get("f_name")
+        last_name = request.POST.get("l_name")
+        neighborhood_id = request.POST.get("neighborhood_pk")
+        address_id = request.POST.get("address_id")
+        website = request.POST.get("website")
+
+        if not username or not password:
+            return JsonResponse(
+                {"success": False, "error": "Username and password required"},
+                status=400,
+            )
+
+        print("working 2")
+        if User.objects.filter(username=username).exists():
+            return JsonResponse(
+                {"success": False, "error": "Username already exists"}, status=400
+            )
+
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+        )
+
+        profile = Profile.objects.create(
+            user=user,
+            neighborhood_id=neighborhood_id,
+            role="neighbor",
+            bio=bio,
+            address_id=address_id,
+            website=website,
+        )
+
+        print("working 3")
+        if "avatar" in request.FILES:
+            profile.photo = request.FILES["avatar"]
+
+        profile.save()
+
+        refresh = RefreshToken.for_user(user)
+
+        print("working 4")
+        return JsonResponse(
+            {
+                "success": True,
+                "username": user.username,
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+            }
+        )
+
     except:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
-
-    username = data.get("username")
-    password = data.get("password")
-
-    if not username or not password:
-        return JsonResponse(
-            {"success": False, "error": "Username and password required"}, status=400
-        )
-
-    if User.objects.filter(username=username).exists():
-        return JsonResponse(
-            {"success": False, "error": "Username already exists"}, status=400
-        )
-
-    user = User.objects.create_user(username=username, password=password)
-
-    refresh = RefreshToken.for_user(user)
-
-    return JsonResponse(
-        {
-            "success": True,
-            "username": user.username,
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-        }
-    )
 
 
 def current_user_view(request):
@@ -130,97 +246,72 @@ def current_user_view(request):
 
 
 @csrf_exempt
-@api_view(["GET", "POST", "PUT", "DELETE"])
+@api_view(["GET", "PUT"])
 @permission_classes([IsAuthenticated])
 def profile_views(request, profile_id=None):
+    user = request.user
+
+    # Determine profile
+    if profile_id == "me":
+        try:
+            profile = Profile.objects.get(user=user)
+        except Profile.DoesNotExist:
+            return JsonResponse({"error": "Profile Not Found"}, status=404)
+    elif profile_id:
+        try:
+            profile = Profile.objects.get(pk=int(profile_id))
+        except Profile.DoesNotExist:
+            return JsonResponse({"error": "Profile Not Found"}, status=404)
+    else:
+        return JsonResponse({"error": "Profile ID required"}, status=400)
+
+    # ---- GET ----
     if request.method == "GET":
-        if profile_id == "me":
-            try:
-                print(request.user)
-                profile = Profile.objects.get(user__username=request.user)
-                print(profile)
-                data = model_to_dict(profile)
-                data["username"] = profile.user.username
-                data["email"] = profile.user.email
-                return JsonResponse(data)
-            except Profile.DoesNotExist:
-                return JsonResponse({"error": "Profile Not Found"}, status=404)
-        elif profile_id:
-            try:
-                profile = Profile.objects.get(pk=int(profile_id))
-                data = model_to_dict(profile)
-                data["username"] = profile.user.username
-                data["email"] = profile.user.email
-                return JsonResponse(data)
-            except Profile.DoesNotExist:
-                return JsonResponse({"error": "Profile Not Found"}, status=404)
-        else:
-            profiles = Profile.objects.all()
-            data = []
-            for profile in profiles:
-                p = model_to_dict(profile)
-                p["username"] = profile.user.username
-                p["email"] = profile.user.email
-                data.append(p)
-            return JsonResponse(data, safe=False)
+        data = model_to_dict(
+            profile, fields=["bio", "website", "address", "neighborhood", "role"]
+        )
+        data["username"] = profile.user.username
+        data["email"] = profile.user.email
+        # Convert image fields to URL strings
+        data["photo_url"] = profile.photo.url if profile.photo else None
+        return JsonResponse(data)
 
-    elif request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            user = User.objects.get(pk=request.user)
-            profile = Profile.objects.create(
-                user=user,
-                address=data.get("address", ""),
-                photo_url=data.get("photo_url", ""),
-                bio=data.get("bio", ""),
-                role=data.get("role", "neighbor"),
-            )
-            return JsonResponse({"id": profile.pk})
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-
+    # ---- PUT ----
     elif request.method == "PUT":
-        if not profile_id:
-            return JsonResponse({"error": "Need profile id"}, status=400)
-        try:
-            profile = Profile.objects.get(pk=profile_id)
-        except Profile.DoesNotExist:
-            return JsonResponse({"error": "Profile Not Found"}, status=404)
+        # Use FormData to support file uploads
+        bio = request.POST.get("bio", profile.bio)
+        website = request.POST.get("website", profile.website)
+        address = request.POST.get("address", profile.address)
+        neighborhood_id = request.POST.get("neighborhood")
 
-        data = json.loads(request.body)
+        profile.bio = bio
+        profile.website = website
+        profile.address = address
 
-        if "username" in data:
-            profile.user.username = data["username"]
-        if "email" in data:
-            profile.user.email = data["email"]
-        if "password" in data:
-            profile.user.set_password(data["password"])
-        if "first_name" in data.user:
-            profile.user.first_name = data["fisrt_name"]
-        if "last_name" in data.user:
-            profile.user.last_name = data["last_name"]
-        profile.user.save()
+        # Handle neighborhood update if provided
+        if neighborhood_id:
+            try:
+                profile.neighborhood = Neighborhood.objects.get(pk=int(neighborhood_id))
+            except Neighborhood.DoesNotExist:
+                pass
 
-        profile.address = data.get("address", profile.address)
-        profile.photo_url = data.get("photo_url", profile.photo_url)
-        profile.bio = data.get("bio", profile.bio)
-        profile.role = data.get("role", profile.role)
-        if "neighborhood" in data:
-            profile.neighborhood = Neighborhood.objects.get(pk=data["neighborhood"])
+        # Handle image uploads
+        if "photo" in request.FILES:
+            profile.photo = request.FILES["photo"]
+
         profile.save()
-
-        return JsonResponse(model_to_dict(profile))
-
-    elif request.method == "DELETE":
-        if not profile_id:
-            return JsonResponse({"error": "Need profile id"}, status=400)
-        try:
-            profile = Profile.objects.get(pk=profile_id)
-            profile.user.delete()
-            profile.delete()
-            return JsonResponse({"status": "deleted"})
-        except Profile.DoesNotExist:
-            return JsonResponse({"error": "Profile Not Found"}, status=404)
+        return JsonResponse(
+            {
+                "success": True,
+                "bio": profile.bio,
+                "website": profile.website,
+                "address": profile.address,
+                "neighborhood": (
+                    profile.neighborhood.id if profile.neighborhood else None
+                ),
+                "photo_url": profile.photo.url if profile.photo else None,
+            }
+        )
 
 
 @api_view(["GET", "POST", "PUT", "DELETE"])
@@ -376,7 +467,7 @@ def user_profile(request, user_id):
             "id": user.pk,
             "fisrt_name": user.user.first_name,
             "last_name": user.user.last_name,
-            "photo_url": user.photo_url,
+            "photo": user.photo_url,
             "bio": user.bio,
             "address": getattr(user, "address", None),
             "neighborhood": (

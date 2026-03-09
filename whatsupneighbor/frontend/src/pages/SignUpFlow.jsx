@@ -8,17 +8,26 @@ export default function SignupFlow() {
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
+  const [addressName, setAddressName] = useState("");
 
   const [signupData, setSignupData] = useState({
     username: "",
     password: "",
+    avatar: "",
     f_name: "",
     l_name: "",
+    email: "",
     bio: "",
     website: "",
     items: "",
-    address: "",
+    street: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "",
+    address_id: "",
     neighborhood: "",
+    neighborhood_pk: "",
   });
   const [error, setError] = useState("");
 
@@ -47,23 +56,68 @@ export default function SignupFlow() {
     setSignupData((prev) => ({ ...prev, [field]: value }));
 
   const handleSignup = async () => {
+  try {
+    const formData = new FormData();
+    Object.entries(signupData).forEach(([key, value]) => {
+      if (value instanceof File) {
+        formData.append(key, value);
+      } else if (value !== undefined && value !== null) {
+        formData.append(key, value);
+      }
+    });
+
+    const res = await fetch("http://127.0.0.1:8000/main/auth/signup/", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) navigate("/");
+    else setError(data.error);
+  } catch (err) {
+    console.error(err);
+    setError("Signup failed. Try again.");
+  }
+};
+
+  const handleAddress = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/main/auth/signup/", {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-            
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(signupData),
-      });
+      const res = await fetch(
+        "http://127.0.0.1:8000/main/api/get_nearest_neighborhood/",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            street: signupData.street,
+            city: signupData.city,
+            state: signupData.state,
+            zip_code: signupData.zipCode,
+            country: signupData.country,
+          }),
+        }
+      );
+
       const data = await res.json();
-      if (data.success) navigate("/");
-      else setError(data.error);
+      console.log(data);
+
+      if (data.success) {
+        // Update state properly
+        setSignupData((prev) => ({
+          ...prev,
+          neighborhood: data.neighborhood,
+          neighborhood_pk: data.neighborhood_pk,
+          address_id: data.address_id,
+        }));
+        setAddressName(data.neighborhood_name); // This will trigger re-render
+      } else {
+        setError(data.error);
+      }
     } catch (err) {
       console.error(err);
-      setError("Signup failed. Try again.");
+      setError("Signup failed. Neighborhood get failed.");
     }
   };
 
@@ -82,16 +136,19 @@ export default function SignupFlow() {
       <div className="sf-body">
         {step === 0 && <TermsScreen onAgree={handleNext} />}
         {step === 1 && (
-          <ProfileScreen signupData={signupData} handleChange={handleChange} />
+          <ProfileScreen signupData={signupData} handleChange={handleChange} handleNext={handleNext} />
         )}
         {step === 2 && (
-          <AddressScreen signupData={signupData} handleChange={handleChange} />
+          <AddressScreen signupData={signupData} handleChange={handleChange} handleNext={handleNext} />
         )}
         {step === 3 && (
           <NeighborhoodScreen
             signupData={signupData}
             handleChange={handleChange}
             onSignup={handleSignup}
+            handleNext={handleNext}
+            handleAddress={handleAddress}
+            addressName={addressName}
           />
         )}
       </div>
@@ -132,7 +189,7 @@ function TermsScreen({ onAgree }) {
   );
 }
 
-function ProfileScreen({ signupData, handleChange }) {
+function ProfileScreen({ signupData, handleChange, handleNext}) {
   return (
     <div className="profile-ui">
       <h2 className="section-title">Profile Information</h2>
@@ -150,6 +207,19 @@ function ProfileScreen({ signupData, handleChange }) {
             value={signupData.username}
             onChange={(e) => handleChange("username", e.target.value)}
           />
+
+          <label className="profile-ui__label" htmlFor="email">
+            Email
+          </label>
+          <input
+            id="email"
+            type="text"
+            className="profile-ui__input"
+            placeholder="Enter Email"
+            value={signupData.email}
+            onChange={(e) => handleChange("email", e.target.value)}
+          />
+
           <label className="profile-ui__label" htmlFor="password">
             Password
           </label>
@@ -161,6 +231,32 @@ function ProfileScreen({ signupData, handleChange }) {
             value={signupData.password}
             onChange={(e) => handleChange("password", e.target.value)}
           />
+
+          <label className="profile-ui__label" htmlFor="avatar">
+            Profile Photo
+          </label>
+          <input
+            id="avatar"
+            type="file"
+            accept="image/*"
+            className="profile-ui__input"
+            onChange={(e) => {
+              if (e.target.files.length > 0) {
+                handleChange("avatar", e.target.files[0]);
+              }
+            }}
+          />
+
+          {signupData.avatar && (
+            <div style={{ marginTop: "10px" }}>
+              <img
+                src={URL.createObjectURL(signupData.avatar)}
+                alt="Preview"
+                width={120}
+                style={{ borderRadius: "8px" }}
+              />
+            </div>
+          )}
 
           <label className="profile-ui__label" htmlFor="f_name">
             First Name
@@ -208,50 +304,79 @@ function ProfileScreen({ signupData, handleChange }) {
             value={signupData.website}
             onChange={(e) => handleChange("website", e.target.value)}
           />
-          <label className="profile-ui__label" htmlFor="items">
-            Items
-          </label>
-          <input
-            id="items"
-            type="text"
-            className="profile-ui__input"
-            placeholder="Add Items (comma separated)"
-            value={signupData.items}
-            onChange={(e) => handleChange("items", e.target.value)}
-          />
 
-          <button className="profile-ui__primarybtn">
-            Continue
-          </button>
+          <button
+            className="profile-ui__primarybtn"
+            onClick={handleNext}
+          > Next </button>
         </div>
       </div>
     </div>
   );
 }
 
-function AddressScreen({ signupData, handleChange }) {
+function AddressScreen({ signupData, handleChange, handleNext }) {
   return (
     <div className="sf-card sf-center">
       <h2 className="sf-section-title">Address</h2>
+
       <input
         className="sf-input"
-        placeholder="Start Typing Here"
-        value={signupData.address}
-        onChange={(e) => handleChange("address", e.target.value)}
+        placeholder="Street Address"
+        value={signupData.street || ""}
+        onChange={(e) => handleChange("street", e.target.value)}
       />
+
+      <input
+        className="sf-input"
+        placeholder="City"
+        value={signupData.city || ""}
+        onChange={(e) => handleChange("city", e.target.value)}
+      />
+
+      <input
+        className="sf-input"
+        placeholder="State"
+        value={signupData.state || ""}
+        onChange={(e) => handleChange("state", e.target.value)}
+      />
+
+      <input
+        className="sf-input"
+        placeholder="Zip Code"
+        value={signupData.zipCode || ""}
+        onChange={(e) => handleChange("zipCode", e.target.value)}
+      />
+
+      <input
+        className="sf-input"
+        placeholder="Country"
+        value={signupData.country || ""}
+        onChange={(e) => handleChange("country", e.target.value)}
+      />
+
+      <button
+        className="profile-ui__primarybtn"
+        onClick={handleNext}
+      >
+        Next
+      </button>
     </div>
   );
 }
 
-function NeighborhoodScreen({ signupData, handleChange, onSignup }) {
+function NeighborhoodScreen({ signupData, handleChange, onSignup, handleNext, handleAddress, addressName }) {
+  useEffect(() => {
+    handleAddress();
+  }, []);
   return (
     <div className="sf-card sf-center">
       <h2 className="sf-section-title">Neighborhood</h2>
       <input
         className="sf-input"
-        placeholder="Neighborhood Radius (e.g., 5 miles)"
-        value={signupData.neighborhood}
+        value={addressName}
         onChange={(e) => handleChange("neighborhood", e.target.value)}
+        disabled
       />
       <button className="sf-btn sf-btn-primary" onClick={onSignup}>
         Join Neighborhood

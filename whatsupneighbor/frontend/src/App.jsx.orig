@@ -11,18 +11,45 @@ import Saved from "./pages/Saved";
 import LendPage from "./pages/LendPage";
 import ConnectPage from "./pages/ConnectPage";
 import TrustFeedback from "./pages/TrustFeedback";
+<<<<<<< HEAD
 import ProtectedRoute from "./components/ProtectedRoute";
+||||||| 47fafbd
+=======
 import TransactionHistory from "./pages/TransactionHistory";
 import SearchMember from "./pages/SearchMember";
 import ViewProfile from "./pages/ViewProfile";
 
-//Change Event to EventsPage in import and down below (for Sayman)
+>>>>>>> izabela-pages
+
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/sign-up" element={<SignUpFlow />} />
+<<<<<<< HEAD
+||||||| 47fafbd
+        <Route path="/saved" element={<Saved />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/messages" element={<Message />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/borrow" element={<BorrowPage />} />
+        <Route path="/lend" element={<LendPage />} />
+        <Route path="/connect" element={<ConnectPage />} />
+        <Route path="/trust-feedback" element={<TrustFeedback />} />
+=======
+        <Route path="/saved" element={<Saved />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/messages" element={<Message />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/borrow" element={<BorrowPage />} />
+        <Route path="/lend" element={<LendPage />} />
+        <Route path="/connect" element={<ConnectPage />} />
+        <Route path="/trust-feedback" element={<TrustFeedback />} />
+        <Route path="/members/:id/transactions" element={<TransactionHistory />} />
+        <Route path="/search-members" element={<SearchMember />} />
+        <Route path="/members/:id" element={<ViewProfile />} />
+>>>>>>> izabela-pages
 
         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/events" element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
@@ -34,9 +61,6 @@ function App() {
         <Route path="/lend" element={<ProtectedRoute><LendPage /></ProtectedRoute>} />
         <Route path="/connect" element={<ProtectedRoute><ConnectPage /></ProtectedRoute>} />
         <Route path="/trust-feedback" element={<ProtectedRoute><TrustFeedback /></ProtectedRoute>} />
-	<Route path="/members/:id/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
-        <Route path="/search-members" element={<ProtectedRoute><SearchMember /></ProtectedRoute>} />
-        <Route path="/members/:id" element={<ProtectedRoute><ViewProfile /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

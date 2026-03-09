@@ -9,33 +9,38 @@ import userIcon from "../assets/avatar-icon.png";
 export default function MessagesPage() {
   const token = localStorage.getItem("accessToken");
   const navigate = useNavigate();
+
   const [search, setSearch] = useState("");
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
+  const [messageInput, setMessageInput] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     async function fetchChats() {
       try {
         const res = await fetch("http://127.0.0.1:8000/main/chats/my_chats/", {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-            });
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
         const data = await res.json();
+
         const mappedChats = data.map((chat) => ({
           id: chat.id,
           name: chat.name,
           isGroup: chat.is_group,
           lastMessage: chat.last_message?.content || "",
-          timestamp: chat.last_message?.timestamp || Date.now(),
+          timestamp: chat.last_message?.timestamp || new Date().toISOString(),
           unread: chat.unread_count || 0,
-          messages: chat.messages.map((msg) => ({
+          messages: (chat.messages || []).map((msg) => ({
             from: msg.sender_name,
             text: msg.content,
           })),
         }));
+
         setChats(mappedChats);
       } catch (err) {
         console.error(err);
@@ -44,11 +49,13 @@ export default function MessagesPage() {
     }
 
     fetchChats();
-  }, []);
+  }, [token]);
 
   const filteredChats = chats
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .filter((chat) => chat.name.toLowerCase().includes(search.toLowerCase()));
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .filter((chat) =>
+      chat.name.toLowerCase().includes(search.toLowerCase())
+    );
 
   const formatTime = (timestamp) => {
     const diff = Date.now() - new Date(timestamp);
@@ -61,30 +68,34 @@ export default function MessagesPage() {
     return `${days}d`;
   };
 
-  const sendMessage = async (content) => {
-    if (!content.trim()) return;
+  const sendMessage = async () => {
+    if (!messageInput.trim() || !selectedChat) return;
+
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/main/chats/${selectedChat.id}/send_message/`, {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-            
+        `http://127.0.0.1:8000/main/chats/${selectedChat.id}/send_message/`,
+        {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content }),
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ content: messageInput }),
         }
       );
+
       const data = await res.json();
-      if (data.success) {
+
+      if (res.ok) {
         setSelectedChat((prev) => ({
           ...prev,
           messages: [
             ...prev.messages,
-            { from: "You", text: content },
+            { from: "You", text: messageInput },
           ],
         }));
+
+        setMessageInput("");
       } else {
         setError(data.error || "Failed to send message.");
       }
@@ -123,9 +134,13 @@ export default function MessagesPage() {
             {selectedChat.messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`chat-bubble ${msg.from === "You" ? "me" : ""}`}
+                className={`chat-bubble ${
+                  msg.from === "You" ? "me" : ""
+                }`}
               >
-                {selectedChat.isGroup && <div className="group-name">{msg.from}</div>}
+                {selectedChat.isGroup && (
+                  <div className="group-name">{msg.from}</div>
+                )}
                 {msg.text}
               </div>
             ))}
@@ -133,23 +148,15 @@ export default function MessagesPage() {
 
           <div className="chat-input-wrap">
             <input
+              value={messageInput}
               placeholder="Type a message..."
+              onChange={(e) => setMessageInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  sendMessage(e.target.value);
-                  e.target.value = "";
-                }
+                if (e.key === "Enter") sendMessage();
               }}
             />
-            <button
-              onClick={() => {
-                const input = document.querySelector(".chat-input-wrap input");
-                sendMessage(input.value);
-                input.value = "";
-              }}
-            >
-              Send
-            </button>
+
+            <button onClick={sendMessage}>Send</button>
           </div>
         </div>
       ) : (
@@ -183,15 +190,20 @@ export default function MessagesPage() {
                 <div className="message-content">
                   <div className="message-top">
                     <span className="message-name">{chat.name}</span>
+
                     <span className="message-time">
                       {formatTime(chat.timestamp)}
                     </span>
                   </div>
 
-                  <div className="message-preview">{chat.lastMessage}</div>
+                  <div className="message-preview">
+                    {chat.lastMessage}
+                  </div>
                 </div>
 
-                {chat.unread > 0 && <div className="unread-badge">{chat.unread}</div>}
+                {chat.unread > 0 && (
+                  <div className="unread-badge">{chat.unread}</div>
+                )}
               </div>
             ))}
           </div>

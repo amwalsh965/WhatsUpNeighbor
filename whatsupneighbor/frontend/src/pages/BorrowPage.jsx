@@ -77,6 +77,7 @@ export default function BorrowPage() {
 
       </div>
 
+      {/* HERO */}
       <div className="events-hero">
 
         <h1>Borrow & Lend</h1>
@@ -150,6 +151,8 @@ export default function BorrowPage() {
                   e.stopPropagation();
                   toggleFavorite(item.id);
                 }}
+                aria-label="Favorite"
+                title="Favorite"
               >
                 {isFav ? "❤️" : "🤍"}
               </button>
@@ -186,13 +189,9 @@ export default function BorrowPage() {
                   ? "Unavailable"
                   : "Request Item"}
               </button>
-
             </div>
-
           );
-
         })}
-
       </div>
 
       {visibleItems < items.length && (
@@ -208,9 +207,9 @@ export default function BorrowPage() {
           </button>
 
         </div>
-
       )}
 
+      {/* MODAL (NO HEARTS HERE) */}
       {selectedItem && (
 
         <div
@@ -234,7 +233,6 @@ export default function BorrowPage() {
             <p>
               <b>Owner:</b> {selectedItem.owner}
             </p>
-
             <p>{selectedItem.description}</p>
 
             <textarea
@@ -253,13 +251,9 @@ export default function BorrowPage() {
               </button>
 
             </div>
-
           </div>
-
         </div>
-
       )}
-
     </div>
   );
 }

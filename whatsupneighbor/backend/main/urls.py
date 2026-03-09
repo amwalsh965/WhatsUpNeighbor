@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 app_name = "main"
@@ -8,7 +10,7 @@ app_name = "main"
 # When a view is created, a url path must also be created. If you want a specific endpoint, specify it in the ""
 
 urlpatterns = [
-    # path("test/", views.test),
+    path("test/", views.test),
     path("user/", views.profile_views),
     path("user/<int:user_id>/", views.profile_views),
     path("user/<int:user_id>/profile/", views.user_profile, name="user-profile"),
@@ -29,4 +31,5 @@ urlpatterns = [
     path("chats/<int:chat_id>/send_message/", views.send_message, name="send_message"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-]
+    path("api/get_nearest_neighborhood/", views.find_nearest_neighborhood),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

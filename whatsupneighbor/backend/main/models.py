@@ -112,15 +112,35 @@ class Transaction(models.Model):
         return f"{self.pk} {self.listing} {self.lender} {self.borrower}"
 
 
+class Address(models.Model):
+    street = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=50)
+    zip_code = models.CharField(max_length=20)
+    country = models.CharField(max_length=100, default="USA")
+
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def full_address(self):
+        return (
+            f"{self.street}, {self.city}, {self.state} {self.zip_code}, {self.country}"
+        )
+
+    def __str__(self):
+        return self.full_address()
+
+
 # Might change to form.Forms
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    # f_name = models.CharField(max_length=25, blank=False, null=False)
-    # l_name = models.CharField(max_length=25, blank=False, null=False)
-    address = models.CharField(max_length=255)
+    address = models.ForeignKey(Address, on_delete=models.CASCADE)
     neighborhood = models.ForeignKey("Neighborhood", on_delete=models.CASCADE)
-    photo_url = models.TextField(blank=True, null=True)
+    photo = models.ImageField(upload_to="profile_images/", blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
+    website = models.CharField(max_length=100, blank=True, null=True)
 
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
@@ -142,7 +162,7 @@ class Profile(models.Model):
 
 class Neighborhood(models.Model):
     name = models.CharField(max_length=100)
-    zip = models.CharField(max_length=10)
+    address = models.ForeignKey(Address, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.pk} {self.name}"
@@ -168,7 +188,6 @@ class Listing(models.Model):
     )
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
-    image_url = models.TextField()
     neighborhood = models.ForeignKey(Neighborhood, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -215,7 +234,7 @@ class Item(models.Model):
     status = models.CharField(
         max_length=50, choices=ItemStatus.choices, default=ItemStatus.AVAILABLE
     )
-    image = models.ImageField(upload_to="item_images/", blank=True, null=True)
+    photo = models.ImageField(upload_to="item_images/", blank=True, null=True)
 
     def __str__(self):
         return f"{self.pk}"
@@ -252,6 +271,19 @@ class Events(models.Model):
 class EventProfileAssociation(models.Model):
     event = models.ForeignKey(Events, on_delete=models.CASCADE)
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
+
+
+# izabela added
+class SavedListing(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    saved_At = models.DateTimeField(auto_now=True)
+
+    class Meta:  # just to avoid duplicates but can be removed to match other tables' format
+        unique_together = ("user", "listing")
+
+    def __str__(self):
+        return f"{self.user} saved {self.listing}"
 
 
 # Adam End
