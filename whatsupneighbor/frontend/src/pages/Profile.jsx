@@ -7,6 +7,7 @@ import calIcon from "../assets/calendar.png";
 import heartIcon from "../assets/heart.png";
 import chatIcon from "../assets/speech-bubble.png";
 import userIcon from "../assets/avatar-icon.png";
+import "../index.css";
 
 export default function Profile() {
   const token = localStorage.getItem("accessToken");
@@ -27,10 +28,14 @@ export default function Profile() {
     photo: "",
     address: "",
     neighborhood: "",
+    rating: "",
   });
 
   const [assets, setAssets] = useState([]);
   const [error, setError] = useState("");
+  const [rating, setRating] = useState("");
+
+
 
   useEffect(() => {
     async function fetchProfile() {
@@ -57,9 +62,12 @@ export default function Profile() {
           photo: data.photo || "",
           address: data.address || "",
           neighborhood: data.neighborhood || "",
+          rating: data.rating || "5",
         });
+        setRating(data.rating);
 
         setAssets(data.assets || []);
+        console.log(data.assets);
       } catch (err) {
         console.error(err);
         setError("Failed to load profile.");
@@ -73,6 +81,7 @@ export default function Profile() {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
+
 
   const saveProfile = async () => {
   try {
@@ -121,11 +130,12 @@ export default function Profile() {
       <main className="profile-ui__content">
         <section className="profile-ui__left">
 
+          <div className="member-profile-page__statbox">
           <div className="profile-ui__avatarcard">
             <img
               src={form.photo ? `http://127.0.0.1:8000${form.photo}` : profileImage}
               alt="Profile"
-              className="profile-ui__avatarimg"
+              className="profile-ui__avatarimg member-profile-page__statbox"
             />
 
             <label className="profile-ui__label">Photo</label>
@@ -145,20 +155,57 @@ export default function Profile() {
               />
             )}
 
+            
             <div className="profile-ui__name">Your Profile</div>
 
             <div className="profile-ui__stats">
+              <div className="member-profile-page__statbox">
               <div className="profile-ui__stat">
                 <div className="profile-ui__statvalue">{assets.length}</div>
                 <div className="profile-ui__statlabel">Items</div>
               </div>
+              </div>
+              <div className="member-profile-page__statbox">
+              <div className="profile-ui__stat">
+                <div className="profile-ui__statvalue">{rating}</div>
+                <div className="profile-ui__statlabel">Rating</div>
+              </div>
+              </div>
             </div>
+
+            <button
+              className="profile-ui__primarybtn"
+              type="button"
+              onClick={async () => {
+                try {
+                  const res = await fetch("http://127.0.0.1:8000/main/auth/logout/", {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    // remove tokens
+                    localStorage.removeItem("accessToken");
+                    localStorage.removeItem("refreshToken"); // if you store refresh token
+                    // redirect to login
+                    navigate("/auth");
+                  }
+                } catch (err) {
+                  console.error("Logout failed:", err);
+                }
+              }}
+            >
+              Logout
+            </button>
+          </div>
           </div>
 
           
           <label className="profile-ui__label">Bio</label>
           <textarea
-            className="profile-ui__textarea"
+            className="member-profile-page__statbox"
             name="bio"
             value={form.bio}
             onChange={onChange}
@@ -167,7 +214,7 @@ export default function Profile() {
 
           <label className="profile-ui__label">Website</label>
           <input
-            className="profile-ui__input"
+            className="member-profile-page__statbox"
             name="website"
             value={form.website}
             onChange={onChange}
@@ -175,7 +222,7 @@ export default function Profile() {
 
           <label className="profile-ui__label">Address</label>
           <input
-            className="profile-ui__input"
+            className="member-profile-page__statbox"
             name="address"
             value={form.address}
             onChange={onChange}
@@ -190,7 +237,7 @@ export default function Profile() {
           </button>
 
           <label className="profile-ui__label">Neighborhood</label>
-          <p className="profile-ui__readonly">
+          <p className="profile-ui__readonly member-profile-page__statbox">
             {form.neighborhood || "N/A"}
           </p>
         </section>
@@ -200,10 +247,10 @@ export default function Profile() {
 
           <div className="profile-ui__assetslist">
             {assets.map((asset) => (
+              <div className="member-profile-page__statbox">
               <div key={asset.id} className="profile-ui__assetrow">
                 <div className="profile-ui__assetpill">
                   <span className="profile-ui__assetname">{asset.name}</span>
-
                   <span
                     className={`profile-ui__dot ${
                       asset.status === "available"
@@ -212,6 +259,7 @@ export default function Profile() {
                     }`}
                   />
                 </div>
+              </div>
               </div>
             ))}
           </div>

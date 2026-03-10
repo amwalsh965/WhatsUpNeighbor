@@ -43,8 +43,9 @@ function SearchBar({
 
       try {
 
+        const modelsParam = models.join(",");
         const res = await fetch(
-          `http://127.0.0.1:8000/main/search/?search=${encodeURIComponent(debouncedQuery)}`, {
+          `http://127.0.0.1:8000/main/search/?search=${encodeURIComponent(debouncedQuery)}&models=${modelsParam}`, {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",

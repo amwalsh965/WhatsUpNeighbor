@@ -12,20 +12,24 @@ export default function LendPage() {
   const [myItems, setMyItems] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/main/lend/", {
+    console.log("running");
+    fetch("http://127.0.0.1:8000/main/user_listings/", {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
             },
             })
       .then(res => {
+        console.log("running 2");
         if (res.status === 401) {
             navigate("/auth");
             return;
           }
-          res.json()})
+          return res.json();
+        })
       .then(data => {
-        setMyItems(data.results || data);
+        console.log(data);
+        setMyItems(data);
       });
   }, []);
 
@@ -33,18 +37,26 @@ export default function LendPage() {
   e.preventDefault();
 
   if (!formData.name || !formData.category) return;
+  
 
+  const formDataObj = new FormData();
+  formDataObj.append("name", formData.name);
+  formDataObj.append("category", formData.category);
+  formDataObj.append("description", formData.description || "");
+  formDataObj.append("status", "Available");
+
+  if (formData.photo) {
+    formDataObj.append("photo", formData.photo); // optional
+  }
+
+      
   try {
-    const res = await fetch("http://127.0.0.1:8000/main/lend/", {
+    const res = await fetch("http://127.0.0.1:8000/main/user_listings/", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        ...formData,
-        status: "Available",
-      }),
+      body: formDataObj,
     });
 
     const newItem = await res.json();
@@ -64,7 +76,7 @@ export default function LendPage() {
 
   const removeItem = async (id) => {
     try {
-      await fetch(`http://127.0.0.1:8000/main/lend/${id}/`, {
+      await fetch(`http://127.0.0.1:8000/main/user_listings/${id}/`, {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
@@ -135,6 +147,29 @@ export default function LendPage() {
               }
             />
 
+            <label className="profile-ui__label" htmlFor="photo">
+            Profile Photo
+          </label>
+          <input
+            id="photo"
+            type="file"
+            accept="image/*"
+            className="profile-ui__input"
+            onChange={(e) => {
+              setFormData({...formData, photo: e.target.files[0]})
+            }}
+          />
+          {formData.photo && (
+            <div style={{ marginTop: "10px" }}>
+              <img
+                src={URL.createObjectURL(formData.photo)}
+                alt="Preview"
+                width={120}
+                style={{ borderRadius: "8px" }}
+              />
+            </div>
+          )}
+
             <input
               type="text"
               placeholder="Category (Tools, Electronics...)"
@@ -173,6 +208,10 @@ export default function LendPage() {
                 <div key={item.id} className="lend-card">
                   <div className="event-type">{item.category}</div>
                   <h3>{item.name}</h3>
+                  <img
+                  src={item.photo ? `http://127.0.0.1:8000${item.photo}` : ""}
+                  alt={item.name} />
+
                   <p>{item.description}</p>
 
                   <span className="status ok">

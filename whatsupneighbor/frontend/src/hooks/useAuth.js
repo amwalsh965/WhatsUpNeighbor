@@ -7,7 +7,7 @@ export default function useAuth() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/main/current_user/", {
+        const res = await fetch("http://127.0.0.1:8000/main/current-user/", {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",

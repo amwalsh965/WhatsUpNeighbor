@@ -16,7 +16,7 @@ export default function Saved() {
   useEffect(() => {
     async function fetchSaved() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/main/saved/", {
+        const res = await fetch("http://127.0.0.1:8000/main/saved-listings/", {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -24,12 +24,24 @@ export default function Saved() {
         });
 
         if (res.status === 401) {
-            navigate("/auth");
-            return;
-          }
+          navigate("/auth");
+          return;
+        }
 
         const data = await res.json();
-        setItems(data.results || []);
+
+        // Normalize backend fields to what frontend expects
+        const normalized = (data.results || data).map((saved) => ({
+          id: saved.id,
+          name: saved.title,
+          description: saved.bio,
+          photo: saved.photo,
+          category: saved.category || "Unknown", // backend may not have category
+          owner: saved.owner || "Unknown", // backend may not have owner
+          status: saved.status || "Available", // default if missing
+        }));
+
+        setItems(normalized);
       } catch (err) {
         console.error("Error fetching saved items:", err);
       }
@@ -84,7 +96,7 @@ export default function Saved() {
                 <div className="listing-image-wrap">
                   <img
                     className="listing-image"
-                    src={item.image}
+                    src={item.photo ? `http://127.0.0.1:8000${item.photo}` : ""}
                     alt={item.name}
                   />
                 </div>

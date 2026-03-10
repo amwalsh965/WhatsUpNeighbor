@@ -34,7 +34,7 @@ export default function SignupFlow() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/main/current_user/", {
+        const res = await fetch("http://127.0.0.1:8000/main/current-user/", {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
@@ -75,7 +75,11 @@ export default function SignupFlow() {
     });
 
     const data = await res.json();
-    if (data.success) navigate("/");
+    if (data.success) {
+      localStorage.setItem("accessToken", data.access); 
+      localStorage.setItem("refreshToken", data.refresh);
+      navigate("/");
+    }
     else setError(data.error);
   } catch (err) {
     console.error(err);

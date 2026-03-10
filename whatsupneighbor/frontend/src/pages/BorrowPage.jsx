@@ -11,6 +11,37 @@ export default function BorrowPage() {
   const [visibleListings, setVisibleListings] = useState(12);
   const [selectedlisting, setSelectedlisting] = useState(null);
   const [favorites, setFavorites] = useState([]);
+  const [borrowedItems, setBorrowedItems] = useState([]);
+
+
+  
+  const sendRequest = async () => {
+  try {
+
+    const message = document.querySelector("textarea").value;
+    document.querySelector("textarea").value = "";
+
+    const res = await fetch(
+      "http://127.0.0.1:8000/main/messages/start/",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          listing_id: selectedlisting.id,
+          message: message,
+        }),
+      }
+    );
+
+    setSelectedlisting(null);
+  } catch (err) {
+    console.error("Request failed:", err);
+  }
+};
+
 
   const toggleFavorite = async (id) => {
     try {
@@ -64,12 +95,29 @@ export default function BorrowPage() {
 
       } catch (err) {
         console.error("Error loading Listings:", err);
+      } }
+    async function fetchBorrowed() {
+      try {
+
+        const res = await fetch(
+          "http://127.0.0.1:8000/main/transactions/borrowed/",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await res.json();
+        setBorrowedItems(data);
+
+      } catch (err) {
+        console.error("Error loading borrowed items:", err);
       }
-
     }
-
-    fetchListings();
-
+      
+  fetchListings();
+  fetchBorrowed();
   }, []);
 
   const handleSearchResults = useCallback((results) => {
@@ -153,6 +201,40 @@ export default function BorrowPage() {
 
       </div>
 
+      <h2 className="section-title">Current Borrowed</h2>
+
+      <div className="lend-grid">
+
+        {borrowedItems.length === 0 ? (
+          <p>You are not currently borrowing any items.</p>
+        ) : (
+          borrowedItems.map((item) => (
+            <div key={item.transaction_id} className="lend-card">
+
+              <img
+                src={item.photo ? `http://127.0.0.1:8000${item.photo}` : ""}
+                alt={item.name}
+                className="borrow-img"
+              />
+
+              <h3>{item.name}</h3>
+
+              <p>
+                <b>Lender:</b> {item.lender}
+              </p>
+
+              <button
+                onClick={() => navigate(`/messages/${item.chat_id}`)}
+              >
+                Open Chat
+              </button>
+
+            </div>
+          ))
+        )}
+
+      </div>
+
       <h2 className="section-title">Available Listings</h2>
 
       <div className="lend-grid">
@@ -228,7 +310,6 @@ export default function BorrowPage() {
         </div>
       )}
 
-      {/* MODAL (NO HEARTS HERE) */}
       {selectedlisting && (
 
         <div
@@ -244,7 +325,7 @@ export default function BorrowPage() {
             <h2>Request {selectedlisting.name}</h2>
 
             <img
-              src={selectedlisting.photo}
+              src={`http://127.0.0.1:8000${selectedlisting.photo}`}
               alt={selectedlisting.name}
               className="borrow-img"
             />
@@ -265,7 +346,7 @@ export default function BorrowPage() {
                 Cancel
               </button>
 
-              <button onClick={() => alert("Request Sent!")}>
+              <button onClick={sendRequest}>
                 Send Request
               </button>
 

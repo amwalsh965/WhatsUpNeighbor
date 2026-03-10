@@ -498,28 +498,46 @@ button:disabled,
   padding: 6px 12px;
   border-radius: 10px;
 }
-
 .chat-messages {
-  max-height: 400px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
+  padding: 16px;
+  gap: 8px;
 }
 
+/* wrapper controls left/right alignment */
+.message-row {
+  display: flex;
+}
+
+.message-row.me {
+  justify-content: flex-end;
+}
+
+.message-row.other {
+  justify-content: flex-start;
+}
+
+/* bubble itself */
 .chat-bubble {
-  max-width: 70%;
+  max-width: 60%;
   padding: 10px 14px;
   border-radius: 14px;
-  background: #f1f3f6;
-  text-align: left;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
 }
 
+/* my messages */
 .chat-bubble.me {
-  align-self: flex-end;
-  background: linear-gradient(135deg, #16c79a, #1f4bff);
+  background: #6366f1;
   color: white;
+}
+
+/* other messages */
+.chat-bubble.other {
+  background: #e5e7eb;
+  color: #111;
 }
 
 .group-name {

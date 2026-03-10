@@ -2,7 +2,7 @@ import BorrowPage from "./pages/BorrowPage";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import EventsPage from "./pages/EventsPage";
-import Message from "./pages/Message";
+import Message from "./pages/MessagePage";
 import Profile from "./pages/Profile";
 import ListingDetailsPage from "./pages/ListingsDetailsPage";
 import AuthPage from "./pages/AuthPage";
@@ -15,6 +15,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import TransactionHistory from "./pages/TransactionHistory";
 import SearchMember from "./pages/SearchMember";
 import ViewProfile from "./pages/ViewProfile";
+import DMPage from "./pages/DMPage";
 
 //Change Event to EventsPage in import and down below (for Sayman)
 function App() {
@@ -38,6 +39,7 @@ function App() {
         <Route path="/search-members" element={<ProtectedRoute><SearchMember /></ProtectedRoute>} />
         <Route path="/members/:id" element={<ProtectedRoute><ViewProfile /></ProtectedRoute>} />
         <Route path="/listing-details/:id" element={<ProtectedRoute><ListingDetailsPage /></ProtectedRoute>} />
+        <Route path="/chats/:id" element={<ProtectedRoute><DMPage /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

@@ -1,72 +1,59 @@
-import { useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-import backArrow from "../assets/leftpoint.png";
+import SearchBar from "../components/general/SearchBar";
 import avatar from "../assets/avatar-icon.png";
+import backArrow from "../assets/leftpoint.png";
 
 export default function SearchMembers() {
+  const token = localStorage.getItem("accessToken");
   const navigate = useNavigate();
 
-  const [searchText, setSearchText] = useState("");
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Manual example data (like Borrow page)
-  const members = [
-    {
-      id: 1,
-      name: "Tyler Johnson",
-      bio: "Enjoys lending outdoor gear and tools.",
-      rating: 4.8,
-      itemsLent: 12,
-      image: avatar,
-    },
-    {
-      id: 2,
-      name: "Danielle Brown",
-      bio: "Happy to share kitchen and home items.",
-      rating: 4.9,
-      itemsLent: 15,
-      image: avatar,
-    },
-    {
-      id: 3,
-      name: "Adam Lee",
-      bio: "Has plenty of tools for home projects.",
-      rating: 4.7,
-      itemsLent: 8,
-      image: avatar,
-    },
-    {
-      id: 4,
-      name: "Izabela Camaj",
-      bio: "Community member sharing tech equipment.",
-      rating: 5.0,
-      itemsLent: 10,
-      image: avatar,
-    },
-    {
-      id: 5,
-      name: "Sophia Miller",
-      bio: "Lends camping and hiking gear.",
-      rating: 4.6,
-      itemsLent: 6,
-      image: avatar,
-    },
-    {
-      id: 6,
-      name: "Michael Carter",
-      bio: "Shares automotive and garage tools.",
-      rating: 4.5,
-      itemsLent: 9,
-      image: avatar,
-    },
-  ];
+  // Fetch initial members on page load
+  const fetchMembers = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        "http://127.0.0.1:8000/main/search/?search=&models=users,profiles",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await res.json();
+      const profileResults = data.results.filter(
+        (r) => r.type === "profile" || r.type === "user"
+      );
+      setMembers(profileResults);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch members.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Filtering search results
-  const filteredMembers = useMemo(() => {
-    return members.filter((member) =>
-      member.name.toLowerCase().includes(searchText.toLowerCase())
+  useEffect(() => {
+    fetchMembers();
+  }, []);
+
+  // Handler called by SearchBar with dynamic results
+  const handleSearchResults = (results) => {
+    if (!results) {
+      fetchMembers(); // reset to initial members
+      return;
+    }
+
+    const profileResults = results.filter(
+      (r) => r.type === "profile" || r.type === "user"
     );
-  }, [searchText]);
+    setMembers(profileResults);
+  };
 
   return (
     <div className="search-members-page">
@@ -77,60 +64,50 @@ export default function SearchMembers() {
           onClick={() => navigate(-1)}
           aria-label="Back"
         >
-          <img
-            className="search-members-page__backicon"
-            src={backArrow}
-            alt=""
-          />
+          <img className="search-members-page__backicon" src={backArrow} alt="" />
         </button>
-
         <div className="search-members-page__title">Search Members</div>
-
         <div className="search-members-page__spacer" />
       </header>
 
-      {/* Content */}
+      {/* Search Bar */}
       <div className="search-members-page__content">
-        <input
-          className="search-members-page__input"
+        <SearchBar
+          outline={true}
+          models={["users", "profiles"]}
+          width="100%"
           placeholder="Search members..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
+          onResults={handleSearchResults}
         />
 
+        {error && <div className="search-members-page__error">{error}</div>}
+        {loading && <div className="search-members-page__loading">Loading...</div>}
+
+        {/* Members List */}
         <div className="search-members-page__results">
-          {filteredMembers.map((member) => (
-            <div
-              key={member.id}
-              className="search-members-page__member"
-              onClick={() => navigate(`/members/${member.id}`)}
-            >
-              <img
-                src={member.image}
-                alt={member.name}
-                className="search-members-page__avatar"
-              />
-
-              <div className="search-members-page__memberinfo">
-                <div className="search-members-page__membername">
-                  {member.name}
-                </div>
-
-                <div className="search-members-page__memberbio">
-                  {member.bio}
-                </div>
-
-                <div className="search-members-page__memberstats">
-                  ⭐ {member.rating} • {member.itemsLent} items lent
+          {members.length === 0 && !loading ? (
+            <div className="search-members-page__empty">No members found</div>
+          ) : (
+            members.map((member) => (
+              <div
+                key={member.id}
+                className="search-members-page__member"
+                onClick={() => navigate(`/members/${member.id}`)}
+              >
+                <img
+                  src={member.photo ? `http://127.0.0.1:8000${member.photo}` : avatar}
+                  alt={member.name}
+                  className="search-members-page__avatar"
+                />
+                <div className="search-members-page__memberinfo">
+                  <div className="search-members-page__membername">{member.name}</div>
+                  <div className="search-members-page__memberbio">{member.bio}</div>
+                  <div className="search-members-page__memberstats">
+                    ⭐ {member.rating} • {member.items_lent || 0} items lent
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-
-          {filteredMembers.length === 0 && (
-            <div className="search-members-page__empty">
-              No members found
-            </div>
+            ))
           )}
         </div>
       </div>

@@ -240,24 +240,21 @@ class Item(models.Model):
         return f"{self.pk}"
 
 
-# The items the user has listed
-class ItemProfileAssociation(models.Model):
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
 class Events(models.Model):
     title = models.CharField(max_length=255)
+    photo = models.ImageField("event_images/", null=True, blank=True)
     date = models.DateTimeField()
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
     description = models.TextField()
     host = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
 
-class EventProfileAssociation(models.Model):
+class EventSignUp(models.Model):
     event = models.ForeignKey(Events, on_delete=models.CASCADE)
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("event", "user")
 
 
 # izabela added
@@ -271,6 +268,3 @@ class SavedListing(models.Model):
 
     def __str__(self):
         return f"{self.user} saved {self.listing}"
-
-
-# Adam End
