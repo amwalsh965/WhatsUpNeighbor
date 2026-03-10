@@ -174,11 +174,11 @@ export default function EventsPage() {
                   <h3>{e.title}</h3>
 
                   <p>
-                    <b>Date:</b> {e.date}
+                    <b>Date:</b> {new Date(e.date).toLocaleDateString()}
                   </p>
 
                   <p>
-                    <b>Location:</b> {e.location}
+                    <b>Location:</b> {e.address}
                   </p>
 
                   <p>{e.description}</p>

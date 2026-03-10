@@ -34,9 +34,10 @@ function App() {
         <Route path="/lend" element={<ProtectedRoute><LendPage /></ProtectedRoute>} />
         <Route path="/connect" element={<ProtectedRoute><ConnectPage /></ProtectedRoute>} />
         <Route path="/trust-feedback" element={<ProtectedRoute><TrustFeedback /></ProtectedRoute>} />
-	<Route path="/members/:id/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
+	      <Route path="/members/:id/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
         <Route path="/search-members" element={<ProtectedRoute><SearchMember /></ProtectedRoute>} />
         <Route path="/members/:id" element={<ProtectedRoute><ViewProfile /></ProtectedRoute>} />
+        <Route path="/listing-details/:id" element={<ProtectedRoute><ListingDetailsPage /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

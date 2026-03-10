@@ -18,8 +18,15 @@ export default function LendPage() {
                 "Content-Type": "application/json",
             },
             })
-      .then(res => res.json())
-      .then(data => setMyItems(data.results || data));
+      .then(res => {
+        if (res.status === 401) {
+            navigate("/auth");
+            return;
+          }
+          res.json()})
+      .then(data => {
+        setMyItems(data.results || data);
+      });
   }, []);
 
   const handleSubmit = async (e) => {

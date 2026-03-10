@@ -93,7 +93,7 @@ def create_events():
             for k in range(len(eventDescriptions)):
                 Events.objects.create(
                     title=eventTypes[i],
-                    address=locations[j],
+                    address=Address.objects.get(pk=102),
                     date=timezone.now(),
                     description=eventDescriptions[k],
                     host=owners[random.randint(1, len(owners)) - 1],

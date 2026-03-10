@@ -23,6 +23,11 @@ export default function Saved() {
           },
         });
 
+        if (res.status === 401) {
+            navigate("/auth");
+            return;
+          }
+
         const data = await res.json();
         setItems(data.results || []);
       } catch (err) {

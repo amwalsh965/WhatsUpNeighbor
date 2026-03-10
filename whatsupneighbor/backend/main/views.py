@@ -183,8 +183,10 @@ def signup_view(request):
         bio = request.POST.get("bio")
         first_name = request.POST.get("f_name")
         last_name = request.POST.get("l_name")
-        neighborhood_id = request.POST.get("neighborhood_pk")
-        address_id = request.POST.get("address_id")
+        neighborhood = Neighborhood.objects.get(
+            pk=int(request.POST.get("neighborhood_pk"))
+        )
+        address = Address.objects.get(pk=int(request.POST.get("address_id")))
         website = request.POST.get("website")
 
         if not username or not password:
@@ -209,10 +211,10 @@ def signup_view(request):
 
         profile = Profile.objects.create(
             user=user,
-            neighborhood_id=neighborhood_id,
+            neighborhood=neighborhood,
             role="neighbor",
             bio=bio,
-            address_id=address_id,
+            address=address,
             website=website,
         )
 
@@ -272,44 +274,61 @@ def profile_views(request, profile_id=None):
         )
         data["username"] = profile.user.username
         data["email"] = profile.user.email
-        # Convert image fields to URL strings
-        data["photo_url"] = profile.photo.url if profile.photo else None
+
+        # Convert ForeignKeys to IDs or displayable info
+        data["address"] = profile.address.id if profile.address else None
+        data["neighborhood"] = profile.neighborhood.id if profile.neighborhood else None
+
+        # Convert image fields to URL
+        data["photo"] = (
+            profile.photo.url if getattr(profile.photo, "url", None) else None
+        )
+
         return JsonResponse(data)
 
     # ---- PUT ----
     elif request.method == "PUT":
-        # Use FormData to support file uploads
+        # Use FormData: text comes in request.POST, file in request.FILES
         bio = request.POST.get("bio", profile.bio)
         website = request.POST.get("website", profile.website)
-        address = request.POST.get("address", profile.address)
+        address_id = request.POST.get("address")
         neighborhood_id = request.POST.get("neighborhood")
 
         profile.bio = bio
         profile.website = website
-        profile.address = address
 
-        # Handle neighborhood update if provided
+        # Handle Address update
+        if address_id:
+            try:
+                profile.address = Address.objects.get(pk=int(address_id))
+            except Address.DoesNotExist:
+                pass
+
+        # Handle Neighborhood update
         if neighborhood_id:
             try:
                 profile.neighborhood = Neighborhood.objects.get(pk=int(neighborhood_id))
             except Neighborhood.DoesNotExist:
                 pass
 
-        # Handle image uploads
+        # Handle uploaded image
         if "photo" in request.FILES:
             profile.photo = request.FILES["photo"]
 
         profile.save()
+
         return JsonResponse(
             {
                 "success": True,
                 "bio": profile.bio,
                 "website": profile.website,
-                "address": profile.address,
+                "address": profile.address.id if profile.address else None,
                 "neighborhood": (
                     profile.neighborhood.id if profile.neighborhood else None
                 ),
-                "photo_url": profile.photo.url if profile.photo else None,
+                "photo": (
+                    profile.photo.url if getattr(profile.photo, "url", None) else None
+                ),
             }
         )
 
@@ -467,7 +486,7 @@ def user_profile(request, user_id):
             "id": user.pk,
             "fisrt_name": user.user.first_name,
             "last_name": user.user.last_name,
-            "photo": user.photo_url,
+            "photo": user.photo,
             "bio": user.bio,
             "address": getattr(user, "address", None),
             "neighborhood": (
@@ -523,10 +542,10 @@ def events_views(request):
         events = Events.objects.all()
         data = [
             {
-                "id": event.id,
+                "id": event.pk,
                 "title": event.title,
                 "date": event.date,
-                "address": event.address,
+                "address": event.address.full_address(),
                 "description": event.description,
                 "host": (
                     f"{event.host.user.first_name} {event.host.user.last_name}"
@@ -600,7 +619,7 @@ def lend_item_detail(request, id):
 
 @api_view(["GET", "POST", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
-def get_items(request):
+def get_listings(request):
 
     items = Item.objects.all()
 
@@ -616,7 +635,7 @@ def get_items(request):
                 "status": item.status,
                 "description": item.description,
                 "owner": "Unknown",
-                "image": item.image.url if item.image else None,
+                "photo": item.photo.url if item.photo else None,
             }
         )
 
@@ -749,35 +768,89 @@ def search_view(request):
 
         for event in events:
             results.append({**event, "type": "event"})
-
-    return JsonResponse({"results": results})
-
-
-@api_view(["GET", "POST", "PUT", "DELETE"])
-@permission_classes([IsAuthenticated])
-def saved_items_view(request):
-    """
-    Return all saved items for the current user.
-    """
-    user = request.user
-    profile = Profile.objects.get(user__username=user)
-
-    saved_items = SavedAssociation.objects.filter(user=profile).select_related("item")
-
-    results = []
-    for assoc in saved_items:
-        item = assoc.item
-        results.append(
-            {
-                "id": item.id,
-                "name": item.name,
-                "title": item.name,
-                "description": item.description,
-                "category": item.category,
-                "status": item.status,
-                "image": item.image.url if item.image else "",
-                "owner": item.owner.username if hasattr(item, "owner") else "Unknown",
-            }
+    if "listings" in models_requested:
+        listings = (
+            Listing.objects.filter(
+                Q(title__icontains=query)
+                | Q(listing_bio__icontains=query)
+                | Q(item__name__icontains=query)
+                | Q(user__user__first_name__icontains=query)
+                | Q(user__user__last_name__icontains=query)
+            )
+            .select_related("user", "user__user", "item")
+            .values(
+                "id",
+                "title",
+                "listing_bio",
+                "status",
+                "type",
+                "item__name",
+                "user__user__first_name",
+                "user__user__last_name",
+            )[:25]
         )
 
+        for listing in listings:
+            results.append({**listing, "type": "listing"})
+
     return JsonResponse({"results": results})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def toggle_saved_listing(request, listing_id):
+
+    user = User.objects.get(user__username=request.user)
+
+    try:
+        listing = Listing.objects.get(pk=listing_id)
+    except Listing.DoesNotExist:
+        return JsonResponse({"error": "Listing not found"}, status=404)
+
+    # Prevent saving your own listing
+    if listing.user.user == user:
+        raise ValidationError("Users cannot save their own listing.")
+
+    existing = SavedListing.objects.filter(user=user, listing=listing).first()
+
+    # If already saved → remove it
+    if existing:
+        existing.delete()
+        return JsonResponse(
+            {"saved": False, "message": "Listing removed from saved items."}
+        )
+
+    # Otherwise create
+    saved = SavedListing.objects.create(user=user, listing=listing)
+
+    return JsonResponse(
+        {
+            "saved": True,
+            "message": "Listing saved successfully.",
+            "saved_listing_id": saved.id,
+        }
+    )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_saved_listings(request):
+
+    user = request.user
+
+    saved_listings = SavedListing.objects.filter(user=user).select_related(
+        "listing", "listing__user"
+    )
+
+    data = [
+        {
+            "id": saved.id,
+            "listing_id": saved.listing.id,
+            "title": saved.listing.title,
+            "listing_bio": saved.listing.listing_bio,
+            "saved_at": saved.saved_At,
+        }
+        for saved in saved_listings
+    ]
+
+    return JsonResponse({"results": data})

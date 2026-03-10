@@ -44,6 +44,10 @@ export default function Profile() {
             },
           }
         );
+        if (res.status === 401) {
+            navigate("/auth");
+            return;
+          }
 
         const data = await res.json();
 
@@ -91,7 +95,7 @@ export default function Profile() {
 
     const data = await res.json();
     if (!data.success) setError("Failed to save profile");
-    else setForm((prev) => ({ ...prev, photo_url: data.photo_url }));
+    else setForm((prev) => ({ ...prev, photo: data.photo }));
   } catch (err) {
     console.error(err);
     setError("Failed to save profile");
@@ -119,10 +123,27 @@ export default function Profile() {
 
           <div className="profile-ui__avatarcard">
             <img
-              src={form.photo_url || profileImage}
+              src={form.photo ? `http://127.0.0.1:8000${form.photo}` : profileImage}
               alt="Profile"
               className="profile-ui__avatarimg"
             />
+
+            <label className="profile-ui__label">Photo</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, photo_file: e.target.files[0] }))
+              }
+            />
+
+            {form.photo_file && (
+              <img
+                src={URL.createObjectURL(form.photo_file)}
+                alt="Preview"
+                className="profile-ui__avatarimg"
+              />
+            )}
 
             <div className="profile-ui__name">Your Profile</div>
 
@@ -198,7 +219,7 @@ export default function Profile() {
           <button
             className="profile-ui__primarybtn"
             type="button"
-            onClick={() => navigate("/messages")}
+            onClick={() => navigate("/search-members")}
           >
             Search Members
           </button>

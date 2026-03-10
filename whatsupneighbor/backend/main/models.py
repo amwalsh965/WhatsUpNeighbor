@@ -247,24 +247,11 @@ class ItemProfileAssociation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class SavedAssociation(models.Model):
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ("user", "item")
-
-    def __str__(self):
-        return f"{self.user.user.first_name} saved {self.item.name}"
-
-
 class Events(models.Model):
     title = models.CharField(max_length=255)
     date = models.DateTimeField()
-    address = models.CharField(max_length=100)
+    address = models.ForeignKey(Address, on_delete=models.CASCADE)
     description = models.TextField()
-
     host = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
 
@@ -275,7 +262,7 @@ class EventProfileAssociation(models.Model):
 
 # izabela added
 class SavedListing(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     saved_At = models.DateTimeField(auto_now=True)
 

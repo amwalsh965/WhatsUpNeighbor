@@ -25,6 +25,11 @@ export default function MessagesPage() {
             "Content-Type": "application/json",
           },
         });
+        if (res.status === 401) {
+            navigate("/auth");
+            return;
+          }
+
 
         const data = await res.json();
 

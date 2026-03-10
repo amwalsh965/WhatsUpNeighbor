@@ -20,8 +20,7 @@ urlpatterns = [
     path("lend/", views.lend_views),
     path("lend/<int:id>/", views.lend_item_detail),
     path("search/", views.search_view),
-    path("items/", views.get_items),
-    path("saved/", views.saved_items_view, name="saved-items"),
+    path("listings/", views.get_listings),
     path("auth/login/", views.login_view, name="login"),
     path("auth/logout/", views.logout_view, name="logout"),
     path("auth/signup/", views.signup_view, name="signup"),
@@ -32,4 +31,14 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/get_nearest_neighborhood/", views.find_nearest_neighborhood),
+    path(
+        "listings/<int:listing_id>/favorite/",
+        views.toggle_saved_listing,
+        name="toggle_saved_listing",
+    ),
+    path(
+        "saved-listings/",
+        views.get_saved_listings,
+        name="get_saved_listings",
+    ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -7,29 +7,45 @@ export default function BorrowPage() {
   const token = localStorage.getItem("accessToken");
   const navigate = useNavigate();
 
-  const [items, setItems] = useState([]);
-  const [visibleItems, setVisibleItems] = useState(12);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [listings, setListings] = useState([]);
+  const [visibleListings, setVisibleListings] = useState(12);
+  const [selectedlisting, setSelectedlisting] = useState(null);
   const [favorites, setFavorites] = useState([]);
 
-  const toggleFavorite = (id) => {
+  const toggleFavorite = async (id) => {
+    try {
 
-    setFavorites((prev) =>
-      prev.includes(id)
-        ? prev.filter((x) => x !== id)
-        : [...prev, id]
-    );
+      const res = await fetch(
+        `http://127.0.0.1:8000/main/listings/${id}/favorite/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
+      const data = await res.json();
+
+      if (data.saved) {
+        setFavorites((prev) => [...prev, id]);
+      } else {
+        setFavorites((prev) => prev.filter((x) => x !== id));
+      }
+
+    } catch (err) {
+      console.error("Favorite error:", err);
+    }
   };
 
   useEffect(() => {
 
-    async function fetchItems() {
+    async function fetchListings() {
 
       try {
 
         const res = await fetch(
-          "http://127.0.0.1:8000/main/items/", {
+          "http://127.0.0.1:8000/main/listings/", {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json",
@@ -37,28 +53,33 @@ export default function BorrowPage() {
             }
         );
 
+        if (res.status === 401) {
+          navigate("/auth");
+          return;
+        }
+
         const data = await res.json();
 
-        setItems(data.results || data);
+        setListings(data.results || data);
 
       } catch (err) {
-        console.error("Error loading items:", err);
+        console.error("Error loading Listings:", err);
       }
 
     }
 
-    fetchItems();
+    fetchListings();
 
   }, []);
 
   const handleSearchResults = useCallback((results) => {
 
     if (!results) {
-      setItems([]);
+      setListings([]);
       return;
     }
 
-    setItems(results);
+    setListings(results);
 
   }, []);
 
@@ -125,96 +146,94 @@ export default function BorrowPage() {
 
         <SearchBar
           outline={true}
-          models={["items"]}
-          placeholder="Search items..."
+          models={["listings"]}
+          placeholder="Search Listings..."
           onResults={handleSearchResults}
         />
 
       </div>
 
-      <h2 className="section-title">Available Items</h2>
+      <h2 className="section-title">Available Listings</h2>
 
       <div className="lend-grid">
 
-        {items.slice(0, visibleItems).map((item) => {
+        {listings.slice(0, visibleListings).map((listing) => {
 
-          const isFav = favorites.includes(item.id);
+          const isFav = favorites.includes(listing.id);
 
           return (
 
-            <div key={item.id} className="lend-card">
+            <div key={listing.id} className="lend-card">
 
               <button
                 type="button"
                 className={`favorite-btn ${isFav ? "active" : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleFavorite(item.id);
+                  toggleFavorite(listing.id);
                 }}
-                aria-label="Favorite"
-                title="Favorite"
               >
                 {isFav ? "❤️" : "🤍"}
               </button>
 
               <img
-                src={item.image}
-                alt={item.name}
+                src={listing.photo ? `http://127.0.0.1:8000${listing.photo}` : ""} 
+                alt={listing.name}
                 className="borrow-img"
               />
 
-              <div className="event-type">{item.category}</div>
+              <div className="event-type">{listing.category}</div>
 
-              <h3>{item.name}</h3>
+              <h3>{listing.name}</h3>
 
               <p>
-                <b>Owner:</b> {item.owner}
+                <b>Owner:</b> {listing.owner}
               </p>
 
-              <p>{item.description}</p>
+              <p>{listing.description}</p>
 
               <span
                 className={`status ${
-                  item.status === "Available" ? "ok" : "busy"
+                  listing.status === "Available" ? "ok" : "busy"
                 }`}
               >
-                {item.status}
+                {listing.status}
               </span>
 
               <button
-                disabled={item.status === "Borrowed"}
-                onClick={() => setSelectedItem(item)}
+                disabled={listing.status === "Borrowed"}
+                onClick={() => setSelectedlisting(listing)}
               >
-                {item.status === "Borrowed"
+                {listing.status === "Borrowed"
                   ? "Unavailable"
-                  : "Request Item"}
+                  : "Request listing"}
               </button>
             </div>
           );
         })}
       </div>
 
-      {visibleItems < items.length && (
+      {visibleListings < listings.length && (
 
         <div style={{ textAlign: "center", margin: "40px 0" }}>
 
           <button
             onClick={() =>
-              setVisibleItems((prev) => prev + 12)
+              setVisibleListings((prev) => prev + 12)
             }
           >
-            Load More Items
+            Load More Listings
           </button>
 
         </div>
       )}
 
       {/* MODAL (NO HEARTS HERE) */}
-      {selectedItem && (
+      {selectedlisting && (
 
         <div
           className="modal-overlay"
-          onClick={() => setSelectedItem(null)}
+          onClick={() => setSelectedlisting(null)}
         >
 
           <div
@@ -222,18 +241,18 @@ export default function BorrowPage() {
             onClick={(e) => e.stopPropagation()}
           >
 
-            <h2>Request {selectedItem.name}</h2>
+            <h2>Request {selectedlisting.name}</h2>
 
             <img
-              src={selectedItem.image}
-              alt={selectedItem.name}
+              src={selectedlisting.photo}
+              alt={selectedlisting.name}
               className="borrow-img"
             />
 
             <p>
-              <b>Owner:</b> {selectedItem.owner}
+              <b>Owner:</b> {selectedlisting.owner}
             </p>
-            <p>{selectedItem.description}</p>
+            <p>{selectedlisting.description}</p>
 
             <textarea
               placeholder="Write a message to the owner..."
@@ -242,7 +261,7 @@ export default function BorrowPage() {
 
             <div className="modal-actions">
 
-              <button onClick={() => setSelectedItem(null)}>
+              <button onClick={() => setSelectedlisting(null)}>
                 Cancel
               </button>
 
