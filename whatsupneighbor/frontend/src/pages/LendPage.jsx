@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
+
+import BottomNav from "../components/general/BottomNav";
+
 export default function LendPage() {
   const navigate = useNavigate();
   const token = localStorage.getItem("accessToken");
@@ -46,7 +49,7 @@ export default function LendPage() {
   formDataObj.append("status", "Available");
 
   if (formData.photo) {
-    formDataObj.append("photo", formData.photo); // optional
+    formDataObj.append("photo", formData.photo);
   }
 
       
@@ -248,6 +251,7 @@ export default function LendPage() {
 
         </div>
       </div>
+      <BottomNav navigate={navigate} />
     </div>
   );
 }

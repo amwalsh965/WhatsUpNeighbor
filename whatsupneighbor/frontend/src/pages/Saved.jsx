@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-import calIcon from "../assets/calendar.png";
-import heartNavIcon from "../assets/heart.png";
-import chatIcon from "../assets/speech-bubble.png";
-import userIcon from "../assets/avatar-icon.png";
+
+import BottomNav from "../components/general/BottomNav";
 
 export default function Saved() {
   const token = localStorage.getItem("accessToken");
@@ -30,15 +28,14 @@ export default function Saved() {
 
         const data = await res.json();
 
-        // Normalize backend fields to what frontend expects
         const normalized = (data.results || data).map((saved) => ({
           id: saved.id,
           name: saved.title,
           description: saved.bio,
           photo: saved.photo,
-          category: saved.category || "Unknown", // backend may not have category
-          owner: saved.owner || "Unknown", // backend may not have owner
-          status: saved.status || "Available", // default if missing
+          category: saved.category || "Unknown",
+          owner: saved.owner || "Unknown",
+          status: saved.status || "Available",
         }));
 
         setItems(normalized);
@@ -148,39 +145,7 @@ export default function Saved() {
         )}
       </div>
 
-      <nav className="bottom-nav">
-        <button
-          className="nav-item"
-          type="button"
-          onClick={() => navigate("/events")}
-        >
-          <img className="nav-icon" src={calIcon} alt="Events" />
-        </button>
-
-        <button
-          className="nav-item"
-          type="button"
-          onClick={() => navigate("/saved")}
-        >
-          <img className="nav-icon" src={heartNavIcon} alt="Saved" />
-        </button>
-
-        <button
-          className="nav-item"
-          type="button"
-          onClick={() => navigate("/messages")}
-        >
-          <img className="nav-icon" src={chatIcon} alt="Messages" />
-        </button>
-
-        <button
-          className="nav-item"
-          type="button"
-          onClick={() => navigate("/profile")}
-        >
-          <img className="nav-icon" src={userIcon} alt="Profile" />
-        </button>
-      </nav>
+      <BottomNav navigate={navigate} />
     </div>
   );
 }

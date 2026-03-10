@@ -1,6 +1,6 @@
 import math
 
-from django.forms import model_to_dict
+from django.forms import ValidationError, model_to_dict
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -8,20 +8,19 @@ import json
 from django.db.models import Q
 from django.utils import timezone
 
-from datetime import datetime
 
-from .view_utils import *
+from datetime import datetime, timedelta
+
+from .models import *
 
 from django.contrib.auth.decorators import login_required
 
-# from .view_utils import *
-from django.shortcuts import render, get_object_or_404  # added a new import
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 import requests
 
@@ -38,12 +37,6 @@ def test(request):
 
     print("done")
     return render({"created_events": "Created Events"})
-
-
-# in frontend would be called by fetch("/users")
-
-
-# Login Views
 
 
 @csrf_exempt
@@ -647,7 +640,6 @@ def event_signup_view(request):
 
             return JsonResponse({"success": True, "events": events})
 
-        # POST and DELETE both require JSON body
         data = json.loads(request.body)
         eid = data.get("event_id")
         event = Events.objects.get(pk=eid)
@@ -735,7 +727,6 @@ def lend_views(request):
 def user_lend_views(request, pk=None):
     profile = Profile.objects.get(user=request.user)
 
-    # GET all items for this user
     if request.method == "GET":
         listings = Listing.objects.filter(user=profile)
         items = []
@@ -752,7 +743,6 @@ def user_lend_views(request, pk=None):
             )
         return JsonResponse(items, safe=False)
 
-    # POST a new item + listing
     if request.method == "POST":
         name = request.POST.get("name")
         category = request.POST.get("category")
@@ -796,7 +786,6 @@ def user_lend_views(request, pk=None):
             status=201,
         )
 
-    # DELETE an item (requires pk)
     if request.method == "DELETE":
         if not pk:
             return JsonResponse({"error": "Item ID required"}, status=400)
@@ -877,7 +866,6 @@ def my_chats_view(request):
 
         transaction = chat.transaction
 
-        # Determine the other participant
         if transaction.lender == profile:
             other = transaction.borrower
         else:
@@ -890,7 +878,7 @@ def my_chats_view(request):
                 "id": chat.pk,
                 "transaction_id": transaction.pk,
                 "name": chat_name,
-                "is_group": False,  # transactions are 1-to-1
+                "is_group": False,
                 "last_message": {
                     "content": last_msg.content if last_msg else "",
                     "timestamp": last_msg.timestamp.isoformat() if last_msg else None,
@@ -950,7 +938,6 @@ def chat_detail_view(request, chat_id):
 
     messages = chat.message_set.order_by("timestamp")
 
-    # Get the chat name (other participant)
     participants = (
         [chat.transaction.lender, chat.transaction.borrower]
         if hasattr(chat, "transaction")
@@ -975,7 +962,7 @@ def chat_detail_view(request, chat_id):
         {
             "id": chat.pk,
             "name": chat_name,
-            "is_group": False,  # adjust if you support group chats
+            "is_group": False,
             "messages": [
                 {
                     "id": m.pk,
@@ -1004,7 +991,6 @@ def start_chat_view(request):
 
     lender = listing.user
 
-    # Check if transaction/chat already exists
     transaction = Transaction.objects.filter(
         listing=listing, borrower=borrower, lender=lender
     ).first()
@@ -1177,20 +1163,17 @@ def toggle_saved_listing(request, listing_id):
     except Listing.DoesNotExist:
         return JsonResponse({"error": "Listing not found"}, status=404)
 
-    # Prevent saving your own listing
     if listing.user.user == user:
         raise ValidationError("Users cannot save their own listing.")
 
     existing = SavedListing.objects.filter(user=user, listing=listing).first()
 
-    # If already saved → remove it
     if existing:
         existing.delete()
         return JsonResponse(
             {"saved": False, "message": "Listing removed from saved items."}
         )
 
-    # Otherwise create
     saved = SavedListing.objects.create(user=user, listing=listing)
 
     return JsonResponse(
@@ -1269,25 +1252,20 @@ def start_borrow_request(request):
     except Listing.DoesNotExist:
         return JsonResponse({"error": "Listing not found"}, status=404)
 
-    # Prevent self-borrow
     if listing.owner == profile:
         return JsonResponse({"error": "Cannot borrow your own listing"}, status=400)
 
-    # Create transaction in OPEN status
     transaction = Transaction.objects.create(
         listing=listing,
         lender=listing.owner,
         borrower=profile,
         start_date=timezone.now(),
-        end_date=timezone.now()
-        + timezone.timedelta(days=7),  # default return date, can adjust later
+        end_date=timezone.now() + timezone.timedelta(days=7),
         status="open",
     )
 
-    # Create chat for borrower + lender
     chat = Chat.objects.create(transaction=transaction, status="active")
 
-    # Send initial message if present
     if message:
         Message.objects.create(
             chat=chat, sender=profile, content=message, timestamp=timezone.now()
@@ -1312,9 +1290,7 @@ def approve_borrow_request(request, transaction_id):
 
     transaction.status = "in_progress"
     transaction.start_date = timezone.now()
-    transaction.end_date = transaction.start_date + timezone.timedelta(
-        days=7
-    )  # default return window
+    transaction.end_date = transaction.start_date + timezone.timedelta(days=7)
     transaction.save()
 
     return JsonResponse({"message": "Borrow request approved"})
@@ -1332,7 +1308,6 @@ def mark_item_returned(request, transaction_id):
     if profile != transaction.borrower and profile != transaction.lender:
         return JsonResponse({"error": "Not authorized"}, status=403)
 
-    # Optionally allow borrower to mark as returned
     transaction.status = "completed"
     transaction.save()
 

@@ -1,6 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
+
+import BottomNav from "../components/general/BottomNav";
+
 import SearchBar from "../components/general/SearchBar";
 
 export default function BorrowPage() {
@@ -13,17 +16,12 @@ export default function BorrowPage() {
   const [favorites, setFavorites] = useState([]);
   const [borrowedItems, setBorrowedItems] = useState([]);
 
-
-  
   const sendRequest = async () => {
-  try {
+    try {
+      const message = document.querySelector("textarea").value;
+      document.querySelector("textarea").value = "";
 
-    const message = document.querySelector("textarea").value;
-    document.querySelector("textarea").value = "";
-
-    const res = await fetch(
-      "http://127.0.0.1:8000/main/messages/start/",
-      {
+      await fetch("http://127.0.0.1:8000/main/messages/start/", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -33,29 +31,23 @@ export default function BorrowPage() {
           listing_id: selectedlisting.id,
           message: message,
         }),
-      }
-    );
+      });
 
-    setSelectedlisting(null);
-  } catch (err) {
-    console.error("Request failed:", err);
-  }
-};
-
+      setSelectedlisting(null);
+    } catch (err) {
+      console.error("Request failed:", err);
+    }
+  };
 
   const toggleFavorite = async (id) => {
     try {
-
       const res = await fetch(
         `http://127.0.0.1:8000/main/listings/${id}/favorite/`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-
       const data = await res.json();
 
       if (data.saved) {
@@ -63,190 +55,105 @@ export default function BorrowPage() {
       } else {
         setFavorites((prev) => prev.filter((x) => x !== id));
       }
-
     } catch (err) {
       console.error("Favorite error:", err);
     }
   };
 
   useEffect(() => {
-
-    async function fetchListings() {
-
+    async function fetchData() {
       try {
-
-        const res = await fetch(
-          "http://127.0.0.1:8000/main/listings/", {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-            }
-        );
-
-        if (res.status === 401) {
+        const listingsRes = await fetch("http://127.0.0.1:8000/main/listings/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        if (listingsRes.status === 401) {
           navigate("/auth");
           return;
         }
+        const listingsData = (await listingsRes.json()).results || await listingsRes.json();
+        setListings(listingsData);
 
-        const data = await res.json();
-
-        setListings(data.results || data);
-
-      } catch (err) {
-        console.error("Error loading Listings:", err);
-      } }
-    async function fetchBorrowed() {
-      try {
-
-        const res = await fetch(
+        const borrowedRes = await fetch(
           "http://127.0.0.1:8000/main/transactions/borrowed/",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
+        const borrowedData = await borrowedRes.json();
+        setBorrowedItems(borrowedData);
 
-        const data = await res.json();
-        setBorrowedItems(data);
+        const savedRes = await fetch("http://127.0.0.1:8000/main/saved-listings/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const savedData = await savedRes.json();
+        const savedIds = savedData.results.map((saved) => saved.listing_id);
+        setFavorites(savedIds);
 
       } catch (err) {
-        console.error("Error loading borrowed items:", err);
+        console.error("Error fetching data:", err);
       }
     }
-      
-  fetchListings();
-  fetchBorrowed();
-  }, []);
+
+    fetchData();
+  }, [token, navigate]);
 
   const handleSearchResults = useCallback((results) => {
-
-    if (!results) {
-      setListings([]);
-      return;
-    }
-
-    setListings(results);
-
+    setListings(results || []);
   }, []);
 
   return (
     <div className="events-page">
 
       <div className="topbar">
-
-        <div className="logo-left" onClick={() => navigate("/")}>
-          🏠 Rae
-        </div>
-
-        <div className="profile-right" onClick={() => navigate("/profile")}>
-          👤
-        </div>
-
+        <div className="logo-left" onClick={() => navigate("/")}>🏠 Rae</div>
+        <div className="profile-right" onClick={() => navigate("/profile")}>👤</div>
       </div>
 
-      {/* HERO */}
       <div className="events-hero">
-
         <h1>Borrow & Lend</h1>
 
         <div className="hero-links">
-
-          <NavLink
-            to="/events"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
-            Events
-          </NavLink>
-
-          <NavLink
-            to="/borrow"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
-            Borrow
-          </NavLink>
-
-          <NavLink
-            to="/lend"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
-            Lend
-          </NavLink>
-
-          <NavLink
-            to="/connect"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
-            Connect
-          </NavLink>
-
+          <NavLink to="/events" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Events</NavLink>
+          <NavLink to="/borrow" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Borrow</NavLink>
+          <NavLink to="/lend" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Lend</NavLink>
+          <NavLink to="/connect" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>Connect</NavLink>
         </div>
 
-
         <SearchBar
-          outline={true}
+          outline
           models={["listings"]}
           placeholder="Search Listings..."
           onResults={handleSearchResults}
         />
-
       </div>
 
       <h2 className="section-title">Current Borrowed</h2>
-
       <div className="lend-grid">
-
         {borrowedItems.length === 0 ? (
           <p>You are not currently borrowing any items.</p>
         ) : (
           borrowedItems.map((item) => (
             <div key={item.transaction_id} className="lend-card">
-
               <img
                 src={item.photo ? `http://127.0.0.1:8000${item.photo}` : ""}
                 alt={item.name}
                 className="borrow-img"
               />
-
               <h3>{item.name}</h3>
-
-              <p>
-                <b>Lender:</b> {item.lender}
-              </p>
-
-              <button
-                onClick={() => navigate(`/messages/${item.chat_id}`)}
-              >
-                Open Chat
-              </button>
-
+              <p><b>Lender:</b> {item.lender}</p>
+              <button onClick={() => navigate(`/messages/${item.chat_id}`)}>Open Chat</button>
             </div>
           ))
         )}
-
       </div>
 
       <h2 className="section-title">Available Listings</h2>
-
       <div className="lend-grid">
-
         {listings.slice(0, visibleListings).map((listing) => {
-
           const isFav = favorites.includes(listing.id);
-
           return (
-
             <div key={listing.id} className="lend-card">
-
               <button
                 type="button"
                 className={`favorite-btn ${isFav ? "active" : ""}`}
@@ -259,36 +166,20 @@ export default function BorrowPage() {
               </button>
 
               <img
-                src={listing.photo ? `http://127.0.0.1:8000${listing.photo}` : ""} 
+                src={listing.photo ? `http://127.0.0.1:8000${listing.photo}` : ""}
                 alt={listing.name}
                 className="borrow-img"
               />
-
               <div className="event-type">{listing.category}</div>
-
               <h3>{listing.name}</h3>
-
-              <p>
-                <b>Owner:</b> {listing.owner}
-              </p>
-
+              <p><b>Owner:</b> {listing.owner}</p>
               <p>{listing.description}</p>
-
-              <span
-                className={`status ${
-                  listing.status === "Available" ? "ok" : "busy"
-                }`}
-              >
-                {listing.status}
-              </span>
-
+              <span className={`status ${listing.status === "Available" ? "ok" : "busy"}`}>{listing.status}</span>
               <button
                 disabled={listing.status === "Borrowed"}
                 onClick={() => setSelectedlisting(listing)}
               >
-                {listing.status === "Borrowed"
-                  ? "Unavailable"
-                  : "Request listing"}
+                {listing.status === "Borrowed" ? "Unavailable" : "Request listing"}
               </button>
             </div>
           );
@@ -296,64 +187,33 @@ export default function BorrowPage() {
       </div>
 
       {visibleListings < listings.length && (
-
         <div style={{ textAlign: "center", margin: "40px 0" }}>
-
-          <button
-            onClick={() =>
-              setVisibleListings((prev) => prev + 12)
-            }
-          >
-            Load More Listings
-          </button>
-
+          <button onClick={() => setVisibleListings((prev) => prev + 12)}>Load More Listings</button>
         </div>
       )}
 
       {selectedlisting && (
-
-        <div
-          className="modal-overlay"
-          onClick={() => setSelectedlisting(null)}
-        >
-
-          <div
-            className="modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-
+        <div className="modal-overlay" onClick={() => setSelectedlisting(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>Request {selectedlisting.name}</h2>
-
             <img
               src={`http://127.0.0.1:8000${selectedlisting.photo}`}
               alt={selectedlisting.name}
               className="borrow-img"
             />
-
-            <p>
-              <b>Owner:</b> {selectedlisting.owner}
-            </p>
+            <p><b>Owner:</b> {selectedlisting.owner}</p>
             <p>{selectedlisting.description}</p>
-
-            <textarea
-              placeholder="Write a message to the owner..."
-              rows="4"
-            />
-
+            <textarea placeholder="Write a message to the owner..." rows="4" />
             <div className="modal-actions">
-
-              <button onClick={() => setSelectedlisting(null)}>
-                Cancel
-              </button>
-
-              <button onClick={sendRequest}>
-                Send Request
-              </button>
-
+              <button onClick={() => setSelectedlisting(null)}>Cancel</button>
+              <button onClick={sendRequest}>Send Request</button>
             </div>
           </div>
         </div>
       )}
+
+
+      <BottomNav navigate={navigate} />
     </div>
   );
 }

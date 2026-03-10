@@ -19,9 +19,7 @@ export default function TransactionHistory() {
 
       <div className="tx-page__content">
         <p className="tx-page__subtitle">Member: {id}</p> 
-        {/*id*/}
 
-        {/* this needs to be replaced later when we make the table */}
         <div className="tx-page__empty">
           No transactions to show (placeholder).
         </div>

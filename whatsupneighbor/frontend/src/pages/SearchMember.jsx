@@ -12,7 +12,6 @@ export default function SearchMembers() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch initial members on page load
   const fetchMembers = async () => {
     setLoading(true);
     try {
@@ -42,10 +41,9 @@ export default function SearchMembers() {
     fetchMembers();
   }, []);
 
-  // Handler called by SearchBar with dynamic results
   const handleSearchResults = (results) => {
-    if (!results) {
-      fetchMembers(); // reset to initial members
+    if (!results) {t
+      fetchMembers();
       return;
     }
 
@@ -57,7 +55,6 @@ export default function SearchMembers() {
 
   return (
     <div className="search-members-page">
-      {/* Top Bar */}
       <header className="search-members-page__topbar">
         <button
           className="search-members-page__iconbtn"
@@ -70,7 +67,6 @@ export default function SearchMembers() {
         <div className="search-members-page__spacer" />
       </header>
 
-      {/* Search Bar */}
       <div className="search-members-page__content">
         <SearchBar
           outline={true}
@@ -83,7 +79,6 @@ export default function SearchMembers() {
         {error && <div className="search-members-page__error">{error}</div>}
         {loading && <div className="search-members-page__loading">Loading...</div>}
 
-        {/* Members List */}
         <div className="search-members-page__results">
           {members.length === 0 && !loading ? (
             <div className="search-members-page__empty">No members found</div>

@@ -2,52 +2,6 @@ from django import forms
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
-
-
-# How to make a basic class
-class ExampleModel(models.Model):
-    """
-    Docstring for ExampleModel
-    """
-
-    # Name of table
-    name = "Example Table"
-
-    # fields
-    # CharFields have to be declaired with a default and max_length parameter
-    field1 = models.CharField(default="", max_length=100)
-
-    # IntegerFields don't have to be declared with anything, but all fields have an optional blank and null
-    field2 = models.IntegerField(blank=True, null=True, default=0)
-
-    # Decimal fields have to have the decimal_places parameter, and max_digits parameter
-    # help text can be written for develpers, the String in the beginning (Field 3) is used for forms
-    field3 = models.DecimalField(
-        "Field 3",
-        decimal_places=2,
-        max_digits=10,
-        default=0,
-        help_text="Help text here",
-    )
-
-    # Meta class can be made where info about the table itself is stored
-    class Meta:
-        verbose_name = "Example Model"
-        verbose_name_plural = "Example Models"
-
-    # Class specific functions can be declared here as well, functions that use multiple tables are
-    # more easily created in a separate "view_utils" file
-    def __str__(self):
-        return f"This is the Example Table"
-
-
-class ExampleModel2(models.Model):
-    # Foreign Key Fields only have to have the FKey model, and the on_delete parameter
-    foreignKeyField = models.ForeignKey(
-        "ExampleModel", verbose_name="Example", null=True, on_delete=models.CASCADE
-    )
-
 
 class Status(models.TextChoices):
     OPEN = "open", "Open"
@@ -55,7 +9,6 @@ class Status(models.TextChoices):
     COMPLETED = "completed", "Completed"
 
 
-# For now have foreign keys nullable for testing
 class TrustFeedback(models.Model):
 
     class ReturnTimeliness(models.TextChoices):
@@ -168,7 +121,6 @@ class Neighborhood(models.Model):
         return f"{self.pk} {self.name}"
 
 
-# Adam
 class Listing(models.Model):
     class Type(models.TextChoices):
         OFFER = "offer", "Offer"
@@ -221,7 +173,6 @@ class Message(models.Model):
         return f"{self.pk}"
 
 
-# Adam Start
 class ItemStatus(models.TextChoices):
     AVAILABLE = "available", "Available"
     TAKEN = "taken", "Taken"
@@ -257,13 +208,12 @@ class EventSignUp(models.Model):
         unique_together = ("event", "user")
 
 
-# izabela added
 class SavedListing(models.Model):
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     saved_At = models.DateTimeField(auto_now=True)
 
-    class Meta:  # just to avoid duplicates but can be removed to match other tables' format
+    class Meta:
         unique_together = ("user", "listing")
 
     def __str__(self):

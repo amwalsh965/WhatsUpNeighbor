@@ -108,14 +108,13 @@ export default function SignupFlow() {
       console.log(data);
 
       if (data.success) {
-        // Update state properly
         setSignupData((prev) => ({
           ...prev,
           neighborhood: data.neighborhood,
           neighborhood_pk: data.neighborhood_pk,
           address_id: data.address_id,
         }));
-        setAddressName(data.neighborhood_name); // This will trigger re-render
+        setAddressName(data.neighborhood_name);
       } else {
         setError(data.error);
       }

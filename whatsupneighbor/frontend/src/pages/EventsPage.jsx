@@ -3,6 +3,9 @@ import { NavLink, useNavigate } from "react-router-dom";
 import SearchBar from "../components/general/SearchBar";
 import EventCard from "../components/events/EventCard";
 
+
+import BottomNav from "../components/general/BottomNav";
+
 export default function EventsPage() {
 
   const token = localStorage.getItem("accessToken");
@@ -18,7 +21,7 @@ export default function EventsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [signedUpEvents, setSignedUpEvents] = useState([]);
-  const [signedUpEventsData, setSignedUpEventsData] = useState([]); // full event objects
+  const [signedUpEventsData, setSignedUpEventsData] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
   const [currentUsername, setCurrentUsername] = useState("");
@@ -86,15 +89,14 @@ const handleLeave = async (eventId) => {
 
 const fetchSignedUpEventsData = async () => {
   try {
-    // fetch all events the user signed up for
     const res = await fetch("http://127.0.0.1:8000/main/event-signup/", {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
 
     if (data.success && data.events) {
-      setSignedUpEvents(data.events.map(e => e.id)); // IDs only
-      setSignedUpEventsData(data.events); // full objects
+      setSignedUpEvents(data.events.map(e => e.id));
+      setSignedUpEventsData(data.events);
     }
   } catch (err) {
     console.error(err);
@@ -111,7 +113,7 @@ const fetchParticipants = async (eventId) => {
     );
     const data = await res.json();
     if (data.success) {
-      setParticipants(data.attendees); // new state for participants
+      setParticipants(data.attendees);
     } else {
       console.error("Failed to fetch participants:", data.error);
     }
@@ -124,8 +126,6 @@ useEffect(() => {
   fetchSignedUpEventsData();
 }, []);
 
-  /* ================= FETCH PUBLIC EVENTS ================= */
-
   const fetchEvents = async (offset = 0) => {
   try {
     const res = await fetch(
@@ -137,12 +137,10 @@ useEffect(() => {
     const newEvents = data.results || [];
 
     if (offset === 0) {
-      // initial load or reset
       setEvents(newEvents);
-      setFilteredEvents(null); // no search active
+      setFilteredEvents(null);
       setVisibleEvents(Math.min(6, newEvents.length));
     } else {
-      // append new events to main list safely
       setEvents(prevEvents => {
         const updated = prevEvents ? [...prevEvents, ...newEvents] : [...newEvents];
         setVisibleEvents(prevVisible => prevVisible + newEvents.length);
@@ -153,8 +151,6 @@ useEffect(() => {
     console.error("Error fetching events:", err);
   }
 };
-
-  /* ================= FETCH USER EVENTS ================= */
 
   const fetchMyEvents = async (offset = 0) => {
 
@@ -200,24 +196,19 @@ useEffect(() => {
   if (filteredEvents !== null) {
     setVisibleEvents(Math.min(6, filteredEvents.length));
   } else if (events.length && visibleEvents === 0) {
-    // initial load
     setVisibleEvents(Math.min(6, events.length));
   }
 }, [filteredEvents]);
 
-  /* ================= SEARCH ================= */
-
   const handleSearchResults = useCallback((results) => {
   if (results === null || results.length === 0) {
-    setFilteredEvents(null); // resets to show all events
+    setFilteredEvents(null);
   } else {
     setFilteredEvents(results);
   }
 }, []);
 
   const eventsToRender = filteredEvents !== null ? filteredEvents : events;
-
-  /* ================= CREATE / UPDATE ================= */
 
   const handleSubmit = async (e) => {
 
@@ -290,8 +281,6 @@ useEffect(() => {
 
   };
 
-  /* ================= DELETE ================= */
-
   const deleteEvent = async (id) => {
 
     try {
@@ -318,8 +307,6 @@ useEffect(() => {
 
   };
 
-  /* ================= OPEN EDIT ================= */
-
   const openEdit = (event) => {
 
     setEditingEvent(event);
@@ -336,13 +323,9 @@ useEffect(() => {
 
   };
 
-  /* ================= PAGE ================= */
-
   return (
 
     <div className="events-page">
-
-      {/* ===== TOP BAR ===== */}
 
       <div className="topbar">
 
@@ -355,8 +338,6 @@ useEffect(() => {
         </div>
 
       </div>
-
-      {/* ===== HERO ===== */}
 
       <div className="events-hero">
 
@@ -391,13 +372,12 @@ useEffect(() => {
 
       </div>
 
-      {/* ================= YOUR EVENTS ================= */}
       <h2 className="section-title">Your Events</h2>
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
         <button
           className="primary-btn"
           onClick={() => {
-            setEditingEvent(null); // null means create new
+            setEditingEvent(null);
             setFormData({
               title: "",
               date: "",
@@ -422,11 +402,11 @@ useEffect(() => {
               event={e}
               currentUsername={currentUsername}
               handleEdit={openEdit}
-              showEditDelete={true}          // show edit/delete buttons
-              handleDelete={deleteEvent}     // delete function
-              handleSubmit={handleSubmit}    // create/edit form submission
-              formData={formData}            // form state
-              setFormData={setFormData}      // update form state
+              showEditDelete={true}
+              handleDelete={deleteEvent}
+              handleSubmit={handleSubmit}
+              formData={formData}
+              setFormData={setFormData}
             />
           ))
         )}
@@ -495,7 +475,6 @@ useEffect(() => {
         </div>
       )}
 
-      {/* ================= SIGNED UP EVENTS ================= */}
       <h2 className="section-title">Signed Up Events</h2>
       <div className="event-grid">
         {signedUpEventsData.length === 0 ? (
@@ -506,11 +485,11 @@ useEffect(() => {
               key={e.id}
               event={e}
               currentUsername={currentUsername}
-              signedUpEvents={signedUpEvents}  // for sign up/leave toggle
+              signedUpEvents={signedUpEvents}
               handleSignUp={handleSignUp}
               handleLeave={handleLeave}
-              showSignUpButton={true}          // show sign up/leave buttons
-              handleSubmit={handleSubmit}      // pass create/edit handlers even if modal isn't opened
+              showSignUpButton={true}
+              handleSubmit={handleSubmit}
               formData={formData}
               setFormData={setFormData}
             />
@@ -518,7 +497,6 @@ useEffect(() => {
         )}
       </div>
 
-      {/* ================= UPCOMING EVENTS ================= */}
       <h2 className="section-title">Upcoming Events</h2>
       <div className="event-grid">
         {eventsToRender.slice(0, visibleEvents).map((e) => (
@@ -546,6 +524,8 @@ useEffect(() => {
           </button>
         </div>
       )}
+
+      <BottomNav navigate={navigate} />
 
     </div>
 

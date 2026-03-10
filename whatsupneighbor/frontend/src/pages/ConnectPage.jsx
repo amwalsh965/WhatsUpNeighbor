@@ -1,5 +1,8 @@
 import { NavLink, useNavigate } from "react-router-dom";
 
+
+import BottomNav from "../components/general/BottomNav";
+
 export default function ConnectPage() {
   const navigate = useNavigate();
 
@@ -45,7 +48,7 @@ export default function ConnectPage() {
           </p>
         </div>
       </div>
-
+    <BottomNav navigate={navigate} />
     </div>
   );
 }

@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-import calIcon from "../assets/calendar.png";
-import heartIcon from "../assets/heart.png";
-import chatIcon from "../assets/speech-bubble.png";
-import userIcon from "../assets/avatar-icon.png";
+
+import BottomNav from "../components/general/BottomNav";
 
 import ChatThread from "./ChatThread";
 
@@ -79,12 +77,7 @@ export default function MessagesPage() {
         ))}
       </div>
 
-      <nav className="bottom-nav">
-        <button className="nav-item" onClick={() => navigate("/events")}><img className="nav-icon" src={calIcon} alt="Events" /></button>
-        <button className="nav-item" onClick={() => navigate("/saved")}><img className="nav-icon" src={heartIcon} alt="Saved" /></button>
-        <button className="nav-item" onClick={() => navigate("/messages")}><img className="nav-icon" src={chatIcon} alt="Messages" /></button>
-        <button className="nav-item" onClick={() => navigate("/profile")}><img className="nav-icon" src={userIcon} alt="Profile" /></button>
-      </nav>
+      <BottomNav navigate={navigate} />
     </div>
   );
 }

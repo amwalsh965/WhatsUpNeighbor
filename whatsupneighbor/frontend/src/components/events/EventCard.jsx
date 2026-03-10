@@ -11,13 +11,13 @@ export default function EventCard({
   handleDelete,
   showSignUpButton = false,
   showEditDelete = false,
-  handleSubmit,       // form submission for create/edit
+  handleSubmit,
   formData,
   setFormData,
 }) {
   const [participants, setParticipants] = useState([]);
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
-  const [showModal, setShowModal] = useState(false); // create/edit modal
+  const [showModal, setShowModal] = useState(false);
   const isCreator = event.host === currentUsername;
   const isSignedUp = signedUpEvents.includes(event.id);
 
@@ -78,7 +78,6 @@ export default function EventCard({
         </div>
       </div>
 
-      {/* PARTICIPANTS MODAL */}
       {showParticipantsModal && (
         <div className="modal-overlay" onClick={() => setShowParticipantsModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -96,7 +95,6 @@ export default function EventCard({
         </div>
       )}
 
-      {/* CREATE/EDIT MODAL */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>

@@ -7,8 +7,6 @@ from django.conf.urls.static import static
 
 app_name = "main"
 
-# When a view is created, a url path must also be created. If you want a specific endpoint, specify it in the ""
-
 urlpatterns = [
     path("test/", views.test),
     path("events/", views.events_views),

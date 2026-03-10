@@ -126,14 +126,6 @@ export default function MemberProfile() {
               </div>
             ))}
           </div>
-
-          <button
-            className="member-profile-page__messagebtn"
-            type="button"
-            onClick={() => navigate("/messages")}
-          >
-            Message Member
-          </button>
         </section>
       </main>
 

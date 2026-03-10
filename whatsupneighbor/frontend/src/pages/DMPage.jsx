@@ -26,8 +26,6 @@ export default function DMPage() {
   });
   const [trustCreated, setTrustCreated] = useState(null);
 
-  // fetch current user
-
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -61,12 +59,11 @@ export default function DMPage() {
     } catch (err) {
       console.error(err);
     }
-  }, 2000); // every 2 seconds
+  }, 2000);
 
   return () => clearInterval(interval);
 }, [chat, token]);
 
-  // fetch chat and transaction
   useEffect(() => {
     const fetchChat = async () => {
       try {
@@ -155,7 +152,6 @@ export default function DMPage() {
 
   if (!chat) return <div>Loading chat...</div>;
 
-  // determine user roles
   const isLender = transaction?.lender_username === currentUsername;
   const isBorrower = transaction?.borrower_username === currentUsername;
 
@@ -189,7 +185,6 @@ export default function DMPage() {
         <button onClick={sendMessage}>Send</button>
       </div>
 
-      {/* Transaction actions */}
       <div className="transaction-actions">
         {transaction?.status === "open" && isLender && (
           <button onClick={approveBorrow}>Approve Borrow / Start Transaction</button>

@@ -3,11 +3,9 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 import profileImage from "../assets/avatar-icon.png";
 import backArrow from "../assets/leftpoint.png";
-import calIcon from "../assets/calendar.png";
-import heartIcon from "../assets/heart.png";
-import chatIcon from "../assets/speech-bubble.png";
-import userIcon from "../assets/avatar-icon.png";
 import "../index.css";
+
+import BottomNav from "../components/general/BottomNav";
 
 export default function Profile() {
   const token = localStorage.getItem("accessToken");
@@ -89,7 +87,7 @@ export default function Profile() {
     formData.append("bio", form.bio);
     formData.append("website", form.website);
     formData.append("address", form.address);
-    if (form.photo_file) { // this is the File object from <input type="file">
+    if (form.photo_file) {
       formData.append("photo", form.photo_file);
     }
 
@@ -97,7 +95,6 @@ export default function Profile() {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
-        // NOTE: Do NOT set Content-Type manually for FormData
       },
       body: formData,
     });
@@ -186,10 +183,8 @@ export default function Profile() {
                   });
                   const data = await res.json();
                   if (data.success) {
-                    // remove tokens
                     localStorage.removeItem("accessToken");
-                    localStorage.removeItem("refreshToken"); // if you store refresh token
-                    // redirect to login
+                    localStorage.removeItem("refreshToken");
                     navigate("/auth");
                   }
                 } catch (err) {
@@ -284,23 +279,7 @@ export default function Profile() {
         </section>
       </main>
 
-      <nav className="bottom-nav">
-        <button className="nav-item" onClick={() => navigate("/events")}>
-          <img className="nav-icon" src={calIcon} alt="Events" />
-        </button>
-
-        <button className="nav-item" onClick={() => navigate("/saved")}>
-          <img className="nav-icon" src={heartIcon} alt="Saved" />
-        </button>
-
-        <button className="nav-item" onClick={() => navigate("/messages")}>
-          <img className="nav-icon" src={chatIcon} alt="Messages" />
-        </button>
-
-        <button className="nav-item" onClick={() => navigate("/profile")}>
-          <img className="nav-icon" src={userIcon} alt="Profile" />
-        </button>
-      </nav>
+      <BottomNav navigate={navigate} />
     </div>
   );
 }

@@ -17,7 +17,6 @@ import SearchMember from "./pages/SearchMember";
 import ViewProfile from "./pages/ViewProfile";
 import DMPage from "./pages/DMPage";
 
-//Change Event to EventsPage in import and down below (for Sayman)
 function App() {
   return (
     <Router>
