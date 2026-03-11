@@ -341,8 +341,7 @@ useEffect(() => {
 
       <div className="events-hero">
 
-        <h1>Neighborhood Hub</h1>
-        <p>Events • Borrow • Lend • Connect</p>
+        <h1>Events</h1>
 
         <div className="hero-links">
 

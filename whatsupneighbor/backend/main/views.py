@@ -1200,9 +1200,7 @@ def get_saved_listings(request):
             "title": saved.listing.title,
             "bio": saved.listing.listing_bio,
             "photo": (
-                saved.listing.item.photo.url
-                if saved.listing.item.photo is not None
-                else None
+                saved.listing.item.photo.url if saved.listing.item.photo else None
             ),
             "saved_at": saved.saved_At,
         }

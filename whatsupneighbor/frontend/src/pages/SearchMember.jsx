@@ -42,7 +42,7 @@ export default function SearchMembers() {
   }, []);
 
   const handleSearchResults = (results) => {
-    if (!results) {t
+    if (!results) {
       fetchMembers();
       return;
     }

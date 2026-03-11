@@ -239,7 +239,7 @@ def import_all_sample_data():
     listing2 = Listing.objects.create(
         user=profile_list[1],
         type="request",
-        item=None,
+        item=item1,
         title="I have among us",
         listing_bio="Really really need and among us",
         status="in progress",
@@ -263,7 +263,7 @@ def import_all_sample_data():
     listing4 = Listing.objects.create(
         user=profile_list[3],
         type="offer",
-        item=None,
+        item=item2,
         title="I have among us",
         listing_bio="Really really need and among us",
         status="in progress",
@@ -287,7 +287,7 @@ def import_all_sample_data():
     listing6 = Listing.objects.create(
         user=profile_list[5],
         type="offer",
-        item=None,
+        item=item3,
         title="I have among us",
         listing_bio="Really really need and among us",
         status="in progress",
@@ -300,7 +300,7 @@ def import_all_sample_data():
     listing7 = Listing.objects.create(
         user=profile_list[7],
         type="offer",
-        item=None,
+        item=item4,
         title="I have an offer",
         listing_bio="Really really need some thing",
         status="in progress",
@@ -313,7 +313,7 @@ def import_all_sample_data():
     listing8 = Listing.objects.create(
         user=profile_list[7],
         type="offer",
-        item=None,
+        item=item5,
         title="I have an offer",
         listing_bio="Really really need some thing",
         status="in progress",
@@ -325,7 +325,7 @@ def import_all_sample_data():
     listing9 = Listing.objects.create(
         user=profile_list[9],
         type="offer",
-        item=None,
+        item=item6,
         title="I have an offer",
         listing_bio="Really really need some thing",
         status="in progress",
@@ -337,7 +337,7 @@ def import_all_sample_data():
     listing10 = Listing.objects.create(
         user=profile_list[9],
         type="offer",
-        item=None,
+        item=item7,
         title="I have an offer",
         listing_bio="Really really need some thing",
         status="in progress",
