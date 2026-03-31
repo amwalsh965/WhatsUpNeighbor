@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsUpNeighbor API Docs</title>
+    <style>
+        :root {
+            --bg: #f4f1ea;
+            --panel: #fffdf8;
+            --ink: #1f2937;
+            --muted: #6b7280;
+            --line: #d9d2c3;
+            --accent: #0f766e;
+            --code-bg: #f1efe8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            background: linear-gradient(180deg, #efe8da 0%, var(--bg) 100%);
+            color: var(--ink);
+        }
+
+        .wrap {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 40px 20px 64px;
+        }
+
+        .hero {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 18px 40px rgba(31, 41, 55, 0.08);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            line-height: 1;
+        }
+
+        p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .list {
+            margin-top: 24px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .item {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 18px 20px;
+        }
+
+        .method {
+            display: inline-block;
+            min-width: 58px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(15, 118, 110, 0.12);
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.04em;
+            text-align: center;
+        }
+
+        code {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 4px 8px;
+            background: var(--code-bg);
+            border-radius: 8px;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.95rem;
+        }
+
+        .desc {
+            margin-top: 10px;
+        }
+
+        .note {
+            margin-top: 20px;
+            padding: 16px 18px;
+            border-left: 4px solid var(--accent);
+            background: rgba(15, 118, 110, 0.08);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <section class="hero">
+            <h1>WhatsUpNeighbor API Docs</h1>
+            <p>This backend is a Django app, not a FastAPI app, so there was no built-in <code>/docs</code> route before. This page gives you a quick index of the main backend endpoints.</p>
+            <div class="note">
+                Use the Django server with <code>python manage.py runserver</code> from the backend folder.
+            </div>
+        </section>
+
+        <section class="list">
+            {% for endpoint in endpoints %}
+            <article class="item">
+                <span class="method">{{ endpoint.method }}</span>
+                <code>{{ endpoint.path }}</code>
+                <p class="desc">{{ endpoint.description }}</p>
+            </article>
+            {% endfor %}
+        </section>
+    </div>
+</body>
+</html>

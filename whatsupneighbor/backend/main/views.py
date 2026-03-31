@@ -29,6 +29,26 @@ from assets.scripts.create_events import create_events
 from assets.scripts.sample_date import import_all_sample_data, create_points
 
 
+def home_view(request):
+    return render(request, "main/index.html", {"number": 7})
+
+
+def docs_view(request):
+    endpoints = [
+        {"method": "GET", "path": "/", "description": "Redirects to the main app page."},
+        {"method": "GET", "path": "/main/", "description": "Basic backend landing page."},
+        {"method": "POST", "path": "/main/auth/login/", "description": "Log in and return JWT tokens."},
+        {"method": "POST", "path": "/main/auth/signup/", "description": "Create a user account."},
+        {"method": "GET", "path": "/main/current-user/", "description": "Return the authenticated user."},
+        {"method": "GET", "path": "/main/events/", "description": "List events."},
+        {"method": "GET", "path": "/main/listings/", "description": "List available items/listings."},
+        {"method": "GET", "path": "/main/search/?search=term", "description": "Search listings, items, events, and profiles."},
+        {"method": "GET", "path": "/main/members/", "description": "List community members."},
+        {"method": "GET", "path": "/admin/", "description": "Django admin site."},
+    ]
+    return render(request, "main/docs.html", {"endpoints": endpoints})
+
+
 def test(request):
     print("Creating events")
     # import_all_sample_data()
@@ -36,7 +56,7 @@ def test(request):
     # create_points()
 
     print("done")
-    return render({"created_events": "Created Events"})
+    return JsonResponse({"created_events": "Created Events"})
 
 
 @csrf_exempt
@@ -73,15 +93,48 @@ def login_view(request):
 
 @csrf_exempt
 def find_nearest_neighborhood(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "POST required"}, status=400)
 
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
 
-    address_object, _ = Address.objects.get_or_create(
-        street=data.get("street"),
-        city=data.get("city"),
+    street = (data.get("street") or "").strip()
+    city = (data.get("city") or "").strip()
+    state = (data.get("state") or "").strip()
+    zip_code = (data.get("zip_code") or "").strip()
+    country = (data.get("country") or "").strip()
+
+    if not all([street, city, state, zip_code, country]):
+        return JsonResponse(
+            {"success": False, "error": "Full address is required."}, status=400
+        )
+
+    address_object, created = Address.objects.get_or_create(
+        street=street,
+        city=city,
+        state=state,
+        zip_code=zip_code,
+        country=country,
     )
-    address = address_object.full_address()
-    neighborhoods = Neighborhood.objects.all()
+
+    if not created:
+        fields_changed = False
+        if address_object.state != state:
+            address_object.state = state
+            fields_changed = True
+        if address_object.zip_code != zip_code:
+            address_object.zip_code = zip_code
+            fields_changed = True
+        if address_object.country != country:
+            address_object.country = country
+            fields_changed = True
+        if fields_changed:
+            address_object.save()
+
+    neighborhoods = Neighborhood.objects.select_related("address").all()
 
     def geocode_address(city, state, zip_code, country):
         query = f"{city}, {state}, {zip_code}, {country}"
@@ -114,27 +167,49 @@ def find_nearest_neighborhood(request):
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
         return R * c
 
-    lat1, lon1 = geocode_address(
+    geocoded = geocode_address(
         address_object.city,
         address_object.state,
         address_object.zip_code,
         address_object.country,
     )
-    address_object.latitude = lat1
-    address_object.longitude = lon1
-    address_object.save()
+
+    if geocoded:
+        lat1, lon1 = geocoded
+        address_object.latitude = lat1
+        address_object.longitude = lon1
+        address_object.save(update_fields=["latitude", "longitude"])
+    else:
+        lat1 = address_object.latitude
+        lon1 = address_object.longitude
 
     closest = None
     closest_dist = float("inf")
 
-    for entry in neighborhoods:
-        if entry.address.latitude is None or entry.address.longitude is None:
-            continue
-        d = distance(lat1, lon1, entry.address.latitude, entry.address.longitude)
+    if lat1 is not None and lon1 is not None:
+        for entry in neighborhoods:
+            if entry.address.latitude is None or entry.address.longitude is None:
+                continue
+            d = distance(lat1, lon1, entry.address.latitude, entry.address.longitude)
 
-        if d < closest_dist:
-            closest_dist = d
-            closest = entry
+            if d < closest_dist:
+                closest_dist = d
+                closest = entry
+
+    if closest is None:
+        closest = neighborhoods.filter(address__city__iexact=city).first()
+
+    if closest is None:
+        closest = neighborhoods.first()
+
+    if closest is None:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "No neighborhoods are configured in the backend yet.",
+            },
+            status=404,
+        )
 
     return JsonResponse(
         {
@@ -155,7 +230,7 @@ def logout_view(request):
 @csrf_exempt
 def signup_view(request):
     if request.method != "POST":
-        return JsonResponse({"error": "POST required"}, status=400)
+        return JsonResponse({"success": False, "error": "POST required"}, status=400)
 
     try:
         username = request.POST.get("username")
@@ -164,15 +239,38 @@ def signup_view(request):
         bio = request.POST.get("bio")
         first_name = request.POST.get("f_name")
         last_name = request.POST.get("l_name")
-        neighborhood = Neighborhood.objects.get(
-            pk=int(request.POST.get("neighborhood_pk"))
-        )
-        address = Address.objects.get(pk=int(request.POST.get("address_id")))
+        neighborhood_pk = request.POST.get("neighborhood_pk")
+        address_id = request.POST.get("address_id")
         website = request.POST.get("website")
 
         if not username or not password:
             return JsonResponse(
                 {"success": False, "error": "Username and password required"},
+                status=400,
+            )
+
+        if not neighborhood_pk or not address_id:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Neighborhood and address are required.",
+                },
+                status=400,
+            )
+
+        try:
+            neighborhood = Neighborhood.objects.get(pk=int(neighborhood_pk))
+        except (ValueError, TypeError, Neighborhood.DoesNotExist):
+            return JsonResponse(
+                {"success": False, "error": "Selected neighborhood was not found."},
+                status=400,
+            )
+
+        try:
+            address = Address.objects.get(pk=int(address_id))
+        except (ValueError, TypeError, Address.DoesNotExist):
+            return JsonResponse(
+                {"success": False, "error": "Selected address was not found."},
                 status=400,
             )
 
@@ -217,8 +315,11 @@ def signup_view(request):
             }
         )
 
-    except:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except Exception as exc:
+        return JsonResponse(
+            {"success": False, "error": f"Signup failed: {exc}"},
+            status=400,
+        )
 
 
 @csrf_exempt

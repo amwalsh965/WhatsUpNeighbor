@@ -9,6 +9,8 @@ export default function SignupFlow() {
 
   const [step, setStep] = useState(0);
   const [addressName, setAddressName] = useState("");
+  const [loadingNeighborhood, setLoadingNeighborhood] = useState(false);
+  const [submittingSignup, setSubmittingSignup] = useState(false);
 
   const [signupData, setSignupData] = useState({
     username: "",
@@ -31,6 +33,15 @@ export default function SignupFlow() {
   });
   const [error, setError] = useState("");
 
+  const validateProfileStep = () => {
+    if (!signupData.username.trim()) return "Username is required.";
+    if (!signupData.password.trim()) return "Password is required.";
+    if (!signupData.f_name.trim()) return "First name is required.";
+    if (!signupData.l_name.trim()) return "Last name is required.";
+    if (!signupData.email.trim()) return "Email is required.";
+    return "";
+  };
+
   useEffect(() => {
     async function checkAuth() {
       try {
@@ -49,7 +60,23 @@ export default function SignupFlow() {
     checkAuth();
   }, [navigate]);
 
-  const handleNext = () => setStep((s) => Math.min(s + 1, 3));
+  const handleNext = async () => {
+    setError("");
+
+    if (step === 1) {
+      const profileError = validateProfileStep();
+      if (profileError) {
+        setError(profileError);
+        return;
+      }
+    }
+
+    if (step === 2) {
+      const ok = await handleAddress();
+      if (!ok) return;
+    }
+    setStep((s) => Math.min(s + 1, 3));
+  };
   const handleBack = () => setStep((s) => Math.max(s - 1, 0));
 
   const handleChange = (field, value) =>
@@ -57,6 +84,20 @@ export default function SignupFlow() {
 
   const handleSignup = async () => {
   try {
+    const profileError = validateProfileStep();
+    if (profileError) {
+      setError(profileError);
+      return;
+    }
+
+    if (!signupData.neighborhood_pk || !signupData.address_id) {
+      setError("Please confirm your address and neighborhood before signing up.");
+      return;
+    }
+
+    setSubmittingSignup(true);
+    setError("");
+
     const formData = new FormData();
     Object.entries(signupData).forEach(([key, value]) => {
       if (value instanceof File) {
@@ -80,15 +121,31 @@ export default function SignupFlow() {
       localStorage.setItem("refreshToken", data.refresh);
       navigate("/");
     }
-    else setError(data.error);
+    else setError(data.error || "Signup failed.");
   } catch (err) {
     console.error(err);
     setError("Signup failed. Try again.");
+  } finally {
+    setSubmittingSignup(false);
   }
 };
 
   const handleAddress = async () => {
+    if (
+      !signupData.street.trim() ||
+      !signupData.city.trim() ||
+      !signupData.state.trim() ||
+      !signupData.zipCode.trim() ||
+      !signupData.country.trim()
+    ) {
+      setError("Please fill out the full address before continuing.");
+      return false;
+    }
+
     try {
+      setLoadingNeighborhood(true);
+      setError("");
+
       const res = await fetch(
         "http://127.0.0.1:8000/main/api/get_nearest_neighborhood/",
         {
@@ -114,13 +171,18 @@ export default function SignupFlow() {
           neighborhood_pk: data.neighborhood_pk,
           address_id: data.address_id,
         }));
-        setAddressName(data.neighborhood_name);
+        setAddressName(data.neighborhood);
+        return true;
       } else {
-        setError(data.error);
+        setError(data.error || "Could not find a neighborhood for that address.");
+        return false;
       }
     } catch (err) {
       console.error(err);
-      setError("Signup failed. Neighborhood get failed.");
+      setError("Neighborhood lookup failed. Try again.");
+      return false;
+    } finally {
+      setLoadingNeighborhood(false);
     }
   };
 
@@ -149,14 +211,15 @@ export default function SignupFlow() {
             signupData={signupData}
             handleChange={handleChange}
             onSignup={handleSignup}
-            handleNext={handleNext}
-            handleAddress={handleAddress}
             addressName={addressName}
+            loadingNeighborhood={loadingNeighborhood}
+            submittingSignup={submittingSignup}
+            error={error}
           />
         )}
       </div>
 
-      {error && <div className="sf-error">{error}</div>}
+      {error && step !== 3 && <div className="sf-error">{error}</div>}
     </div>
   );
 }
@@ -368,22 +431,33 @@ function AddressScreen({ signupData, handleChange, handleNext }) {
   );
 }
 
-function NeighborhoodScreen({ signupData, handleChange, onSignup, handleNext, handleAddress, addressName }) {
-  useEffect(() => {
-    handleAddress();
-  }, []);
+function NeighborhoodScreen({ signupData, handleChange, onSignup, addressName, loadingNeighborhood, submittingSignup, error }) {
   return (
     <div className="sf-card sf-center">
       <h2 className="sf-section-title">Neighborhood</h2>
       <input
         className="sf-input"
-        value={addressName}
+        value={addressName || signupData.neighborhood || ""}
         onChange={(e) => handleChange("neighborhood", e.target.value)}
         disabled
       />
-      <button className="sf-btn sf-btn-primary" onClick={onSignup}>
-        Join Neighborhood
+      <button
+        className="sf-btn sf-btn-primary"
+        onClick={onSignup}
+        disabled={
+          loadingNeighborhood ||
+          submittingSignup ||
+          !signupData.neighborhood_pk ||
+          !signupData.address_id
+        }
+      >
+        {loadingNeighborhood
+          ? "Finding Neighborhood..."
+          : submittingSignup
+            ? "Joining..."
+            : "Join Neighborhood"}
       </button>
+      {error && <div className="sf-inline-error">{error}</div>}
     </div>
   );
 }
