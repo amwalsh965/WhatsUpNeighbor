@@ -9,12 +9,35 @@ import SearchBar from "../components/general/SearchBar";
 export default function BorrowPage() {
   const token = localStorage.getItem("accessToken");
   const navigate = useNavigate();
+  const isAdmin = localStorage.getItem("role") === "admin";  //new
 
   const [listings, setListings] = useState([]);
   const [visibleListings, setVisibleListings] = useState(12);
   const [selectedlisting, setSelectedlisting] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [borrowedItems, setBorrowedItems] = useState([]);
+  const [confirmRemoveId, setConfirmRemoveId] = useState(null); // new
+  
+  //new
+  const handleAdminRemove = async (listingId) => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/main/user_listings/${listingId}/`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setListings((prev) => prev.filter((l) => l.id !== listingId));
+        setConfirmRemoveId(null);
+      }
+    } catch (err) {
+      console.error("Remove failed:", err);
+    }
+  };
+
+
+
+
 
   const sendRequest = async () => {
     try {
@@ -181,6 +204,58 @@ export default function BorrowPage() {
               >
                 {listing.status === "Borrowed" ? "Unavailable" : "Request listing"}
               </button>
+                     {isAdmin && (
+                <div style={{ marginTop: "10px" }}>
+                  {confirmRemoveId === listing.id ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      <p style={{ color: "#ff6b6b", fontWeight: "bold", margin: 0 }}>
+                        Are you sure?
+                      </p>
+                      <button
+                        onClick={() => handleAdminRemove(listing.id)}
+                        style={{
+                          background: "#ff6b6b",
+                          color: "white",
+                          border: "none",
+                          padding: "8px",
+                          borderRadius: "10px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Yes, Remove
+                      </button>
+                      <button
+                        onClick={() => setConfirmRemoveId(null)}
+                        style={{
+                          background: "transparent",
+                          border: "1px solid #ccc",
+                          padding: "8px",
+                          borderRadius: "10px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmRemoveId(listing.id)}
+                      style={{
+                        background: "#ff6b6b",
+                        color: "white",
+                        border: "none",
+                        padding: "8px 12px",
+                        borderRadius: "10px",
+                        cursor: "pointer",
+                        width: "100%",
+                      }}
+                    >
+                      Remove Listing
+                    </button>
+                  )}
+                </div>
+              )}
+
             </div>
           );
         })}

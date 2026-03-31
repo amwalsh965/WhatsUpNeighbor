@@ -832,6 +832,19 @@ def lend_item_detail(request, id):
         item.delete()
         return JsonResponse({"deleted": True})
 
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def admin_remove_listing(request, listing_id):
+    if not is_admin(request.user):
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+    
+    try:
+        listing = Listing.objects.get(pk=listing_id)
+        listing.delete()
+        return JsonResponse({"success": True})
+    except Listing.DoesNotExist:
+        return JsonResponse({"error": "Listing not found"}, status=404)
+
 
 @api_view(["GET", "POST", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
