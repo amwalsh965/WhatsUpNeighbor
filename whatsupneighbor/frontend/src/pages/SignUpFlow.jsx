@@ -78,6 +78,8 @@ export default function SignupFlow() {
     if (data.success) {
       localStorage.setItem("accessToken", data.access); 
       localStorage.setItem("refreshToken", data.refresh);
+      localStorage.setItem("role", data.role); // testing -E
+    
       navigate("/");
     }
     else setError(data.error);
@@ -307,7 +309,14 @@ function ProfileScreen({ signupData, handleChange, handleNext}) {
             value={signupData.website}
             onChange={(e) => handleChange("website", e.target.value)}
           />
-
+          <label className="profile-ui__label">
+            <input
+            type="checkbox"
+            checked={signupData.is_admin || false}
+            onChange={(e) => handleChange("is_admin", e.target.checked)}
+          />
+          Make admin (testing only)
+         </label>
           <button
             className="profile-ui__primarybtn"
             onClick={handleNext}

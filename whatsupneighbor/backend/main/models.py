@@ -99,7 +99,7 @@ class Profile(models.Model):
         ADMIN = "admin", "Admin"
         NEIGHBOR = "neighbor", "Neighbor"
 
-    role = models.CharField(max_length=8, choices=Role.choices, default=Role.NEIGHBOR)
+    role = models.CharField(max_length=8, choices=Role.choices, default=Role.ADMIN)
 
     # Trust fields
     trust_rating = models.DecimalField(max_digits=2, decimal_places=1, default=0.0)

@@ -13,6 +13,9 @@ export default function MemberProfile() {
   const navigate = useNavigate();
   const token = localStorage.getItem("accessToken");
 
+  const viewerRole = localStorage.getItem("role") || "user";
+  const isAdmin = viewerRole === "admin";
+
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -126,6 +129,15 @@ export default function MemberProfile() {
               </div>
             ))}
           </div>
+          {isAdmin && (
+            <button
+              className="member-profile-page__btn"
+              type="button"
+              onClick={() => navigate(`/members/${id}/transactions`)}
+            >
+              Transaction History
+            </button>
+          )}
         </section>
       </main>
 

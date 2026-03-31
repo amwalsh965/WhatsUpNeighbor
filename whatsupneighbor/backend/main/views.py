@@ -1,4 +1,5 @@
 import math
+# import profile
 
 from django.forms import ValidationError, model_to_dict
 from django.http import JsonResponse
@@ -60,11 +61,13 @@ def login_view(request):
         )
 
     refresh = RefreshToken.for_user(user)
+    profile = Profile.objects.get(user=user)
 
     return JsonResponse(
         {
             "success": True,
             "username": user.username,
+            "role": profile.role,
             "access": str(refresh.access_token),
             "refresh": str(refresh),
         }
@@ -188,11 +191,16 @@ def signup_view(request):
             last_name=last_name,
             email=email,
         )
-
+        
+        #added in for admin testing w/ checkbox -E 
+        is_admin = request.POST.get("is_admin", "false")  
+        role = "admin" if is_admin.lower() == "true" else "neighbor"
+        
+        
         profile = Profile.objects.create(
             user=user,
             neighborhood=neighborhood,
-            role="neighbor",
+            role=role, #changed for admin -E
             bio=bio,
             address=address,
             website=website,
@@ -207,11 +215,13 @@ def signup_view(request):
 
         user = authenticate(username=username, password=password)
         refresh = RefreshToken.for_user(user)
+        profile = Profile.objects.get(user=user) #added to retrieve role for response -E
 
         return JsonResponse(
             {
                 "success": True,
                 "username": user.username,
+                "role": profile.role, # testing -E
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
             }

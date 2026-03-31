@@ -30,10 +30,13 @@ export default function AuthPage() {
       body: JSON.stringify({ username, password }),
     });
     const data = await res.json();
-    console.log(data)
+    console.log("LOGIN RESPONSE DATA:", data);
     if (res.ok) {
+      console.log("ROLE VALUE:", data.role);
       localStorage.setItem("accessToken", data.access); 
       localStorage.setItem("refreshToken", data.refresh);
+      localStorage.setItem("role", data.role); // testing -Es
+      console.log("ROLE DATA VALUE AFTER FUNCTION CALL:", data.role); // 
       navigate("/");
 
     } else {
