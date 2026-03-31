@@ -71,7 +71,7 @@ npm install
 npm run dev
 ```
 
-Frontend runs at: `http://127.0.0.1:5173/`
+Frontend runs at: `http://localhost:5173/`
 
 ---
 
