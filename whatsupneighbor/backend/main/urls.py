@@ -14,6 +14,7 @@ urlpatterns = [
     path("lend/<int:id>/", views.lend_item_detail),
     path("search/", views.search_view),
     path("listings/", views.get_listings),
+    path("transactions/pending/", views.pending_requests_view),
     path("auth/login/", views.login_view, name="login"),
     path("auth/logout/", views.logout_view, name="logout"),
     path("auth/signup/", views.signup_view, name="signup"),
@@ -23,6 +24,7 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/get_nearest_neighborhood/", views.find_nearest_neighborhood),
     path("admin/users/<int:user_id>/chats/", views.admin_user_chats, name="admin-user-chats"),
+    path("messages/check/", views.check_existing_chat),
     path(
         "listings/<int:listing_id>/favorite/",
         views.toggle_saved_listing,

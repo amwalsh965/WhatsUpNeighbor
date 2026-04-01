@@ -36,6 +36,7 @@ export default function AuthPage() {
       localStorage.setItem("accessToken", data.access); 
       localStorage.setItem("refreshToken", data.refresh);
       localStorage.setItem("role", data.role); // testing -Es
+      sessionStorage.removeItem("pendingDismissed"); 
       console.log("ROLE DATA VALUE AFTER FUNCTION CALL:", data.role); // 
       navigate("/");
 

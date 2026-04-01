@@ -875,25 +875,31 @@ def lend_item_detail(request, id):
         item.delete()
         return JsonResponse({"deleted": True})
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def pending_requests_view(request):
+    profile = Profile.objects.get(user__username=request.user)
+    count = Transaction.objects.filter(lender=profile, status="pending").count()
+    return JsonResponse({"count": count})
+
 
 @api_view(["GET", "POST", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
 def get_listings(request):
-
     items = Item.objects.all()
-
     results = []
 
     for item in items:
-
+        listing = Listing.objects.filter(item=item).first()
         results.append(
             {
-                "id": item.id,
+                "id": listing.pk if listing else item.id,  # use listing ID
+                "item_id": item.id,
                 "name": item.name,
                 "category": item.category,
                 "status": item.status,
                 "description": item.description,
-                "owner": "Unknown",
+                "owner": listing.user.user.get_full_name() if listing else "Unknown",
                 "photo": item.photo.url if item.photo else None,
             }
         )
@@ -1028,6 +1034,29 @@ def chat_detail_view(request, chat_id):
             "transaction": transaction_data,
         }
     )
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def check_existing_chat(request):
+    borrower = Profile.objects.get(user__username=request.user)
+    listing_id = request.GET.get("listing_id")
+
+    try:
+        listing = Listing.objects.get(pk=listing_id)
+    except Listing.DoesNotExist:
+        return JsonResponse({"exists": False})
+
+    transaction = Transaction.objects.filter(
+        listing=listing, borrower=borrower, lender=listing.user
+    ).first()
+
+    if transaction:
+        chat = Chat.objects.filter(transaction=transaction).exclude(status="archived").first()
+        if chat:
+            return JsonResponse({"exists": True, "chat_id": chat.pk})
+
+    return JsonResponse({"exists": False})
+
 
 
 @api_view(["POST"])
