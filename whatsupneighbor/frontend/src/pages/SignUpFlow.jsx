@@ -165,8 +165,11 @@ export default function SignupFlow() {
 
 
 function TermsScreen({ onAgree }) {
+  const navigate = useNavigate();
   return (
-    <div className="sf-center">
+    
+    <div className="sf-center">  
+    
       <div className="sf-terms-title">Terms & Agreements</div>
       <div className="sf-terms-box">
         <div className="sf-terms-scrollhint" />
@@ -187,20 +190,24 @@ function TermsScreen({ onAgree }) {
           a name that is otherwise offensive, vulgar or...
         </p>
       </div>
-      <button className="sf-primary-btn" onClick={onAgree}>
-        I Agree
-      </button>
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
+        <button className="sf-primary-btn" onClick={onAgree}>
+          I Agree
+        </button>
+        <button className="sf-primary-btn" onClick={() => navigate("/auth")}>
+          Back to Login
+        </button>
+      </div>
     </div>
   );
 }
 
 function ProfileScreen({ signupData, handleChange, handleNext}) {
   return (
-    <div className="profile-ui">
-      <h2 className="section-title">Profile Information</h2>
+    <div className="sf-card sf-center">
+      <h2 className="sf-section-title">Profile Information</h2>
 
-      <div className="profile-ui__content">
-        <div className="profile-ui__left">
+      <div>
           <label className="profile-ui__label" htmlFor="username">
             User Name
           </label>
@@ -323,7 +330,6 @@ function ProfileScreen({ signupData, handleChange, handleNext}) {
           > Next </button>
         </div>
       </div>
-    </div>
   );
 }
 
