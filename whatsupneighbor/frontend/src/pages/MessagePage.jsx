@@ -75,7 +75,8 @@ export default function MessagesPage() {
         />
       </div>
 
-     <div className="messages-tabs">
+     <div className="messages-tabs"style={{ marginBottom: "16px" }}>
+      
   <button
     onClick={() => setTab("pending")}
     style={{ fontWeight: tab === "pending" ? "bold" : "normal" }}
