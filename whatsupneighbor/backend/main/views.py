@@ -310,7 +310,7 @@ def profile_views(request, profile_id=None):
     else:
         return JsonResponse({"error": "Profile ID required"}, status=400)
 
-    # ---- GET ----
+     
     if request.method == "GET":
 
         listings = Listing.objects.filter(user=profile)
@@ -351,7 +351,6 @@ def profile_views(request, profile_id=None):
 
         return JsonResponse(data)
 
-    # ---- PUT ----
     elif request.method == "PUT":
         # Use FormData: text comes in request.POST, file in request.FILES
         bio = request.POST.get("bio", profile.bio)
@@ -822,8 +821,8 @@ def user_lend_views(request, pk=None):
             title=item.name,
             listing_bio=item.description,
             status="Available",
-            start_date=timezone.now(),
-            end_date=timezone.now() + timedelta(7),
+            start_date=request.POST.get("start_date") or timezone.now(),
+            end_date=request.POST.get("end_date") or timezone.now() + timedelta(days=7),
             neighborhood=profile.neighborhood,
         )
 
@@ -849,6 +848,37 @@ def user_lend_views(request, pk=None):
             return JsonResponse({"success": True})
         except Item.DoesNotExist:
             return JsonResponse({"error": "Item not found"}, status=404)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def decline_chat_view(request, chat_id):
+    profile = Profile.objects.get(user__username=request.user)
+    try:
+        chat = Chat.objects.get(pk=chat_id)
+    except Chat.DoesNotExist:
+        return JsonResponse({"error": "Chat not found"}, status=404)
+
+    if chat.transaction.lender != profile:
+        return JsonResponse({"error": "Not authorized"}, status=403)
+
+    chat.status = "archived"
+    chat.save()
+    chat.transaction.status = "completed"
+    chat.transaction.save()
+
+    borrower_name = f"{chat.transaction.borrower.user.first_name} {chat.transaction.borrower.user.last_name}"
+    lender_name = f"{profile.user.first_name} {profile.user.last_name}"
+    listing_name = chat.transaction.listing.item.name if chat.transaction.listing.item else chat.transaction.listing.title
+    Message.objects.create(
+    chat=chat,
+    sender=profile,
+    content=f"{lender_name} has declined {borrower_name}'s request for '{listing_name}'.",
+    timestamp=timezone.now(),
+)
+
+    return JsonResponse({"success": True})
+
+
 
 
 @api_view(["GET", "POST", "PUT", "DELETE"])
@@ -901,6 +931,8 @@ def get_listings(request):
                 "description": item.description,
                 "owner": listing.user.user.get_full_name() if listing else "Unknown",
                 "photo": item.photo.url if item.photo else None,
+                "start_date": listing.start_date.isoformat() if listing and listing.start_date else None,
+                "end_date": listing.end_date.isoformat() if listing and listing.end_date else None,
             }
         )
 
@@ -935,6 +967,7 @@ def my_chats_view(request):
         results.append(
             {
                 "id": chat.pk,
+                "status": chat.status,
                 "transaction_id": transaction.pk,
                 "name": chat_name,
                 "is_group": False,
@@ -1018,22 +1051,23 @@ def chat_detail_view(request, chat_id):
         }
 
     return JsonResponse(
-        {
-            "id": chat.pk,
-            "name": chat_name,
-            "is_group": False,
-            "messages": [
-                {
-                    "id": m.pk,
-                    "from": m.sender.user.username,
-                    "text": m.content,
-                    "timestamp": m.timestamp.isoformat(),
-                }
-                for m in messages
-            ],
-            "transaction": transaction_data,
-        }
-    )
+    {
+        "id": chat.pk,
+        "status": chat.status,  # add this
+        "name": chat_name,
+        "is_group": False,
+        "messages": [
+            {
+                "id": m.pk,
+                "from": m.sender.user.username,
+                "text": m.content,
+                "timestamp": m.timestamp.isoformat(),
+            }
+            for m in messages
+        ],
+        "transaction": transaction_data,
+    }
+)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -1073,9 +1107,15 @@ def start_chat_view(request):
 
     lender = listing.user
 
-    transaction = Transaction.objects.filter(
+    transaction = None
+    existing_transactions = Transaction.objects.filter(
         listing=listing, borrower=borrower, lender=lender
-    ).first()
+    )
+    for t in existing_transactions:
+        chat = Chat.objects.filter(transaction=t).first()
+        if not chat or chat.status != "archived":
+            transaction = t
+            break
 
     if not transaction:
         transaction = Transaction.objects.create(
@@ -1090,6 +1130,20 @@ def start_chat_view(request):
     chat, created = Chat.objects.get_or_create(
         transaction=transaction,
         defaults={"status": "pending"},
+    )
+
+    if created:
+        item_name = listing.item.name if listing.item else listing.title
+        borrower_name = f"{borrower.user.first_name} {borrower.user.last_name}"
+        lender_name = f"{lender.user.first_name} {lender.user.last_name}"
+        start = listing.start_date.strftime("%b %d, %Y") if listing.start_date else "N/A"
+        end = listing.end_date.strftime("%b %d, %Y") if listing.end_date else "N/A"
+        system_message = f"{borrower_name} has requested to borrow '{item_name}' from {lender_name}. Available: {start} – {end}."
+        Message.objects.create(
+        chat=chat,
+        sender=borrower,
+        content=system_message,
+        timestamp=timezone.now(),
     )
 
     if message:
@@ -1115,6 +1169,11 @@ def complete_transaction(request, transaction_id):
     t.end_date = timezone.now()
     t.save()
 
+    chat = Chat.objects.filter(transaction=t).first()
+    if chat:
+        chat.status = "archived"
+        chat.save()
+
     return JsonResponse({"status": "completed"})
 
 
@@ -1132,16 +1191,19 @@ def start_transaction_view(request, chat_id):
     except Chat.DoesNotExist:
         return JsonResponse({"error": "Chat not found"}, status=404)
 
+    start_date = request.data.get("start_date")
+    end_date = request.data.get("end_date")
+
     transaction = chat.transaction
     transaction.status = "in_progress"
-    transaction.start_date = timezone.now()
+    transaction.start_date = datetime.strptime(start_date, "%Y-%m-%d") if start_date else timezone.now()
+    transaction.end_date = datetime.strptime(end_date, "%Y-%m-%d") if end_date else timezone.now() + timedelta(days=7)
     transaction.save()
 
     chat.status = "active"
     chat.save()
 
     return JsonResponse({"status": "transaction_started"})
-
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -1390,6 +1452,12 @@ def mark_item_returned(request, transaction_id):
 
     transaction.status = "completed"
     transaction.save()
+
+    # Archive the chat
+    chat = Chat.objects.filter(transaction=transaction).first()
+    if chat:
+        chat.status = "archived"
+        chat.save()
 
     return JsonResponse({"message": "Transaction completed, ready for trust feedback"})
 

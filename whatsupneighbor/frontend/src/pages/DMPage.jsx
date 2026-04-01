@@ -13,7 +13,9 @@ export default function DMPage() {
   const [currentUsername, setCurrentUsername] = useState("");
   const [currentName, setCurrentName] = useState("");
   const [transaction, setTransaction] = useState(null);
-
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [approveStartDate, setApproveStartDate] = useState("");
+  const [approveEndDate, setApproveEndDate] = useState("");
   const [showTrustModal, setShowTrustModal] = useState(false);
   const [trustData, setTrustData] = useState({
     transaction: "",
@@ -110,34 +112,46 @@ export default function DMPage() {
     }
   };
 
-  const approveBorrow = async () => {
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/main/transactions/start/${chat.id}/`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chat.id }),
-      });
-      if (!res.ok) throw new Error("Failed to start transaction");
-      const data = await res.json();
-      setTransaction(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const approveBorrow = async (startDate, endDate) => {
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/main/transactions/start/${chat.id}/`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ start_date: startDate, end_date: endDate }),
+    });
+    if (!res.ok) throw new Error("Failed to start transaction");
+
+    const chatRes = await fetch(`http://127.0.0.1:8000/main/chats/${id}/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const chatData = await chatRes.json();
+    setChat(chatData);
+    setTransaction(chatData.transaction || null);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const markReturned = async () => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/main/transactions/${transaction.id}/return_item/`, {
+      const res = await fetch(`http://127.0.0.1:8000/main/transactions/${transaction.id}/return_item/`, 
+      {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to mark returned");
-      const data = await res.json();
-      setTransaction(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+
+      const chatRes = await fetch(`http://127.0.0.1:8000/main/chats/${id}/`, {
+      headers: { Authorization: `Bearer ${token}` },
+      });
+      const chatData = await chatRes.json();
+      setChat(chatData);
+      setTransaction(chatData.transaction || null);
+
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   useEffect(() => {
     if (chat?.transaction) {
@@ -164,38 +178,67 @@ export default function DMPage() {
 
       {error && <div>{error}</div>}
 
-      <div className="chat-messages">
-        {chat.messages.map((msg) => (
-          <MessageBubble
-            key={msg.id}
-            message={msg}
-            isMe={msg.from === currentUsername}
-            isGroup={chat.is_group}
-          />
-        ))}
+ <div className="chat-messages">
+  {chat.messages.map((msg, index) => (
+    index === 0 || (chat.status === "archived" && index === chat.messages.length - 1) ? (
+      <div key={msg.id} style={{
+        textAlign: "center",
+        padding: "8px 16px",
+        margin: "10px auto",
+        background: "#f0f0f0",
+        borderRadius: "10px",
+        fontSize: "13px",
+        color: "#666",
+        maxWidth: "80%",
+      }}>
+        {msg.text}
       </div>
-
-      <div className="chat-input-wrap">
-        <input
-          value={messageInput}
-          placeholder="Type a message..."
-          onChange={(e) => setMessageInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
-        />
-        <button onClick={sendMessage}>Send</button>
-      </div>
+    ) : (
+      <MessageBubble
+        key={msg.id}
+        message={msg}
+        isMe={msg.from === currentUsername}
+        isGroup={chat.is_group}
+      />
+    )
+  ))}
+</div>
+      {chat?.status !== "archived" && (
+  <div className="chat-input-wrap">
+    <input
+      value={messageInput}
+      placeholder="Type a message..."
+      onChange={(e) => setMessageInput(e.target.value)}
+      onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
+    />
+    <button onClick={sendMessage}>Send</button>
+  </div>
+)}
 
       <div className="transaction-actions">
-        {transaction?.status === "open" && isLender && (
-          <button onClick={approveBorrow}>Approve Borrow / Start Transaction</button>
-        )}
-        {transaction?.status === "in_progress" && isBorrower && (
-          <button onClick={markReturned}>I have returned the item</button>
-        )}
-        {transaction?.status === "completed" && isLender && (
-          <button onClick={() => setShowTrustModal(true)}>Submit Trust Feedback</button>
-        )}
-      </div>
+  {transaction?.status === "pending" && isLender && (
+  <>
+    <button onClick={() => setShowDateModal(true)}>✅ Accept Request</button>
+    <button onClick={async () => {
+      try {
+        await fetch(`http://127.0.0.1:8000/main/chats/${chat.id}/decline/`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        navigate("/messages");
+      } catch (err) {
+        console.error("Failed to decline:", err);
+      }
+    }}>❌ Decline</button>
+  </>
+)}
+  {transaction?.status === "in_progress" && isBorrower && (
+    <button onClick={markReturned}>I have returned the item</button>
+  )}
+  {transaction?.status === "completed" && isLender && (
+    <button onClick={() => setShowTrustModal(true)}>Submit Trust Feedback</button>
+  )}
+</div>
 
       {showTrustModal && (
         <div className="modal-overlay" onClick={() => setShowTrustModal(false)}>
@@ -278,11 +321,41 @@ export default function DMPage() {
                   console.error("Failed to create feedback", err);
                 }
               }}>Submit Feedback</button>
+            
+            
+            </div>
+          </div>
+        </div>
+      )}
+       {showDateModal && (
+        <div className="modal-overlay" onClick={() => setShowDateModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Set Borrow Dates</h2>
+            <label>Start Date</label>
+            <input
+              type="date"
+              value={approveStartDate}
+              onChange={(e) => setApproveStartDate(e.target.value)}
+            />
+            <label>End Date</label>
+            <input
+              type="date"
+              value={approveEndDate}
+              onChange={(e) => setApproveEndDate(e.target.value)}
+            />
+            <div className="modal-actions">
+              <button onClick={() => setShowDateModal(false)}>Cancel</button>
+              <button onClick={async () => {
+                if (!approveStartDate || !approveEndDate) return;
+                await approveBorrow(approveStartDate, approveEndDate);
+                setShowDateModal(false);
+              }}>Confirm</button>
             </div>
           </div>
         </div>
       )}
     </div>
+    
 
     
   );

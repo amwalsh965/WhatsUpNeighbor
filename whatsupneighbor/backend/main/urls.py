@@ -16,6 +16,7 @@ urlpatterns = [
     path("listings/", views.get_listings),
     path("transactions/pending/", views.pending_requests_view),
     path("auth/login/", views.login_view, name="login"),
+    path("chats/<int:chat_id>/decline/", views.decline_chat_view),
     path("auth/logout/", views.logout_view, name="logout"),
     path("auth/signup/", views.signup_view, name="signup"),
     path("current-user/", views.current_user_view, name="current-user"),

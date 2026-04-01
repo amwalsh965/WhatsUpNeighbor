@@ -74,20 +74,20 @@ export default function BorrowPage() {
   };
 
   const handleAdminRemove = async (listingId) => {
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/main/user_listings/${listingId}/`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.success) {
-        setListings((prev) => prev.filter((l) => l.id !== listingId));
-        setConfirmRemoveId(null);
-      }
-    } catch (err) {
-      console.error("Remove failed:", err);
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/main/user_listings/${listingId}/`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (data.success) {
+      setListings((prev) => prev.filter((l) => l.item_id !== listingId));
+      setConfirmRemoveId(null);
     }
-  };
+  } catch (err) {
+    console.error("Remove failed:", err);
+  }
+};
 
   const toggleFavorite = async (id) => {
     try {
@@ -214,6 +214,7 @@ export default function BorrowPage() {
               <h3>{listing.name}</h3>
               <p><b>Owner:</b> {listing.owner}</p>
               <p>{listing.description}</p>
+              <p><b>Available:</b> {listing.start_date ? new Date(listing.start_date).toLocaleDateString() : "N/A"} – {listing.end_date ? new Date(listing.end_date).toLocaleDateString() : "N/A"}</p>
               <span className={`status ${listing.status === "Available" ? "ok" : "busy"}`}>{listing.status}</span>
               <button
                 disabled={listing.status === "Borrowed"}
@@ -224,11 +225,11 @@ export default function BorrowPage() {
 
               {isAdmin && (
                 <div style={{ marginTop: "10px" }}>
-                  {confirmRemoveId === listing.id ? (
+                  {confirmRemoveId === listing.item_id ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                       <p style={{ color: "#ff6b6b", fontWeight: "bold", margin: 0 }}>Are you sure?</p>
                       <button
-                        onClick={() => handleAdminRemove(listing.id)}
+                        onClick={() => handleAdminRemove(listing.item_id)}
                         style={{ background: "#ff6b6b", color: "white", border: "none", padding: "8px", borderRadius: "10px", cursor: "pointer" }}
                       >
                         Yes, Remove
@@ -242,7 +243,7 @@ export default function BorrowPage() {
                     </div>
                   ) : (
                     <button
-                      onClick={() => setConfirmRemoveId(listing.id)}
+                      onClick={() => setConfirmRemoveId(listing.item_id)}
                       style={{ background: "#ff6b6b", color: "white", border: "none", padding: "8px 12px", borderRadius: "10px", cursor: "pointer", width: "100%" }}
                     >
                       Remove Listing
@@ -293,6 +294,7 @@ export default function BorrowPage() {
                 <img src={`http://127.0.0.1:8000${selectedlisting.photo}`} alt={selectedlisting.name} className="borrow-img" />
                 <p><b>Owner:</b> {selectedlisting.owner}</p>
                 <p>{selectedlisting.description}</p>
+                <p><b>Available:</b> {selectedlisting.start_date ? new Date(selectedlisting.start_date).toLocaleDateString() : "N/A"} – {selectedlisting.end_date ? new Date(selectedlisting.end_date).toLocaleDateString() : "N/A"}</p>
                 <textarea placeholder="Write a message to the owner..." rows="4" />
                 <div className="modal-actions">
                   <button onClick={closeModal}>Cancel</button>

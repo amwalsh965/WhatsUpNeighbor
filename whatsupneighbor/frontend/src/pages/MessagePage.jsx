@@ -10,30 +10,39 @@ export default function MessagesPage() {
   const token = localStorage.getItem("accessToken");
   const navigate = useNavigate();
 
+  const [tab, setTab] = useState("pending");
   const [search, setSearch] = useState("");
   const [chats, setChats] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function fetchChats() {
-      try {
-        const res = await fetch("http://127.0.0.1:8000/main/chats/my_chats/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch chats");
-        const data = await res.json();
-        setChats(data);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load chats.");
-      }
+  async function fetchChats() {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/main/chats/my_chats/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch chats");
+      const data = await res.json();
+      setChats(data);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load chats.");
     }
-    fetchChats();
-  }, [token]);
+  }
 
+  fetchChats();
+
+  window.addEventListener("focus", fetchChats);
+  return () => window.removeEventListener("focus", fetchChats);
+}, [token]);
   const filteredChats = chats
     .filter((chat) => chat.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => new Date(b.last_message?.timestamp) - new Date(a.last_message?.timestamp));
+
+
+  const pendingChats = filteredChats.filter(c => c.status === "pending");
+  const activeChats = filteredChats.filter(c => c.status === "active");
+  const closedChats = filteredChats.filter(c => c.status === "archived");
 
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
@@ -66,16 +75,37 @@ export default function MessagesPage() {
         />
       </div>
 
-      <div className="message-list">
-        {filteredChats.map((chat) => (
-          <ChatThread
-            key={chat.id}
-            chat={chat}
-            formatTime={formatTime}
-            onClick={() => navigate(`/chats/${chat.id}`)}
-          />
-        ))}
-      </div>
+     <div className="messages-tabs">
+  <button
+    onClick={() => setTab("pending")}
+    style={{ fontWeight: tab === "pending" ? "bold" : "normal" }}
+  >
+    Pending
+  </button>
+  <button
+    onClick={() => setTab("active")}
+    style={{ fontWeight: tab === "active" ? "bold" : "normal" }}
+  >
+    Active
+  </button>
+  <button
+    onClick={() => setTab("closed")}
+    style={{ fontWeight: tab === "closed" ? "bold" : "normal" }}
+  >
+    Closed
+  </button>
+</div>
+
+<div className="message-list">
+  {(tab === "pending" ? pendingChats : tab === "active" ? activeChats : closedChats).map((chat) => (
+    <ChatThread
+      key={chat.id}
+      chat={chat}
+      formatTime={formatTime}
+      onClick={() => navigate(`/chats/${chat.id}`)}
+    />
+  ))}
+</div>
 
       <BottomNav navigate={navigate} />
     </div>

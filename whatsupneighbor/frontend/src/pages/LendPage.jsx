@@ -10,7 +10,9 @@ export default function LendPage() {
   const [formData, setFormData] = useState({
     name: "",
     category: "",
-    description: ""
+    description: "",
+    start_date: "",
+    end_date: "",
   });
   const [myItems, setMyItems] = useState([]);
 
@@ -46,6 +48,8 @@ export default function LendPage() {
   formDataObj.append("name", formData.name);
   formDataObj.append("category", formData.category);
   formDataObj.append("description", formData.description || "");
+  formDataObj.append("start_date", formData.start_date);
+  formDataObj.append("end_date", formData.end_date);
   formDataObj.append("status", "Available");
 
   if (formData.photo) {
@@ -70,6 +74,8 @@ export default function LendPage() {
       name: "",
       category: "",
       description: "",
+      start_date: "",
+      end_date: "",
     });
 
   } catch (err) {
@@ -189,6 +195,19 @@ export default function LendPage() {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
+            />
+            <label>Available From</label>
+            <input
+              type="date"
+              value={formData.start_date}
+              onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+            />
+
+              <label>Available Until</label>
+            <input
+               type="date"
+               value={formData.end_date}
+              onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
             />
 
             <button type="submit" className="primary-btn">
