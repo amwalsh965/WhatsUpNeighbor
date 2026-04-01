@@ -33,7 +33,7 @@ export default function Saved() {
           name: saved.title,
           description: saved.bio,
           photo: saved.photo,
-          category: saved.category || "Unknown",
+          category: saved.category || "None",
           owner: saved.owner || "Unknown",
           status: saved.status || "Available",
         }));

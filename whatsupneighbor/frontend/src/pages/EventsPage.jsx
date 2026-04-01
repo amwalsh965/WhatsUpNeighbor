@@ -61,7 +61,13 @@ export default function EventsPage() {
     });
     const data = await res.json();
     if (data.success && data.signed_up) {
-      setSignedUpEvents((prev) => [...prev, eventId]);
+      const event = events.find(e => e.id === eventId);
+
+      setSignedUpEvents(prev => [...prev, eventId]);
+
+      if (event) {
+        setSignedUpEventsData(prev => [...prev, event]);
+      }
     }
   } catch (err) {
     console.error(err);
@@ -80,7 +86,10 @@ const handleLeave = async (eventId) => {
     });
     const data = await res.json();
     if (data.success && !data.signed_up) {
-      setSignedUpEvents((prev) => prev.filter((id) => id !== eventId));
+      const event = events.find(e => e.id === eventId);
+
+      setSignedUpEvents(prev => prev.filter(id => id !== eventId));
+      setSignedUpEventsData(prev => prev.filter(e => e.id !== eventId));
     }
   } catch (err) {
     console.error(err);
@@ -208,7 +217,11 @@ useEffect(() => {
   }
 }, []);
 
-  const eventsToRender = filteredEvents !== null ? filteredEvents : events;
+  const eventsToRenderRaw = filteredEvents !== null ? filteredEvents : events;
+
+  const eventsToRender = eventsToRenderRaw.filter(
+    (event) => !signedUpEvents.includes(event.id)
+  );
 
   const handleSubmit = async (e) => {
 
@@ -513,11 +526,11 @@ useEffect(() => {
           />
         ))}
       </div>
-      {eventsToRender.length > visibleEvents && (
+      {eventsToRenderRaw.length > visibleEvents && (
         <div style={{ textAlign: "center", margin: "20px 0" }}>
           <button
             className="primary-btn"
-            onClick={() => fetchEvents(eventsToRender.length)}
+            onClick={() => fetchEvents(events.length)}
           >
             Load More Events
           </button>

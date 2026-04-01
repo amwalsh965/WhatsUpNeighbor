@@ -17,6 +17,7 @@ export default function DMPage() {
   const [approveStartDate, setApproveStartDate] = useState("");
   const [approveEndDate, setApproveEndDate] = useState("");
   const [showTrustModal, setShowTrustModal] = useState(false);
+  const [listing, setListing] = useState(null);
   const [trustData, setTrustData] = useState({
     transaction: "",
     borrower: "",
@@ -77,6 +78,7 @@ export default function DMPage() {
         setChat(data);
         console.log(data);
         setTransaction(data.transaction || null);
+        setListing(data.listing || null);
       } catch (err) {
         console.error(err);
         setError("Failed to load chat");
@@ -177,6 +179,35 @@ export default function DMPage() {
       </div>
 
       {error && <div>{error}</div>}
+      {listing && (
+        <div className="lend-card" style={{ marginBottom: "10px" }}>
+
+          {listing.photo && (
+            <img
+              src={`http://127.0.0.1:8000${listing.photo}`}
+              alt={listing.name}
+              style={{maxWidth: "400px", width: "100%"}}
+            />
+          )}
+
+          <div className="event-type">{listing.category}</div>
+
+          <h3>{listing.name}</h3>
+
+          <p><b>Owner:</b> {listing.owner}</p>
+
+          <p>{listing.description}</p>
+
+          <span
+            className={`status ${
+              listing.status === "Available" ? "ok" : "busy"
+            }`}
+          >
+            {listing.status}
+          </span>
+
+        </div>
+      )}
 
  <div className="chat-messages">
   {chat.messages.map((msg, index) => (
@@ -317,6 +348,7 @@ export default function DMPage() {
                   const data = await res.json();
                   setTrustCreated(data);
                   setShowTrustModal(false);
+                  console.log("set show trust modal false");
                 } catch (err) {
                   console.error("Failed to create feedback", err);
                 }
