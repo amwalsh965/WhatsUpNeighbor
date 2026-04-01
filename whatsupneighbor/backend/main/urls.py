@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/get_nearest_neighborhood/", views.find_nearest_neighborhood),
+    path("admin/users/<int:user_id>/chats/", views.admin_user_chats, name="admin-user-chats"),
     path(
         "listings/<int:listing_id>/favorite/",
         views.toggle_saved_listing,

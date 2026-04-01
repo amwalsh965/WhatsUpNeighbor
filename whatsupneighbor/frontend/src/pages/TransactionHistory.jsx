@@ -11,7 +11,7 @@ export default function TransactionHistory() {
     <div className="tx-page">
       <header className="tx-page__topbar">
         <button className="tx-page__iconbtn" onClick={() => navigate(-1)} aria-label="Back">
-          <img className="tx-page__backicon" src={backArrow} alt="" />
+          <img className="tx-page__backicon" src={backArrow} alt="" style={{ width: "24px", height: "24px" }} />
         </button>
         <div className="tx-page__title">Transaction History</div>
         <div className="tx-page__spacer" />

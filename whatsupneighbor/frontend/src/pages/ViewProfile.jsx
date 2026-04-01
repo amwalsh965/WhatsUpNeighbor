@@ -138,6 +138,15 @@ export default function MemberProfile() {
               Transaction History
             </button>
           )}
+          {isAdmin && (
+            <button
+            className="member-profile-page__btn"
+            type="button"
+            onClick={() => navigate(`/admin/users/${id}/chats`)}
+          >
+            View User's Chats
+          </button>
+)}
         </section>
       </main>
 

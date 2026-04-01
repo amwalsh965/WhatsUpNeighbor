@@ -29,6 +29,13 @@ import requests
 from assets.scripts.create_events import create_events
 from assets.scripts.sample_date import import_all_sample_data, create_points
 
+#new
+def is_admin(user):
+    try:
+        return Profile.objects.get(user=user).role == 'admin'
+    except Profile.DoesNotExist:
+        return False
+
 
 def test(request):
     print("Creating events")
@@ -38,6 +45,42 @@ def test(request):
 
     print("done")
     return render({"created_events": "Created Events"})
+
+#new
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def admin_user_chats(request, user_id):
+    if not is_admin(request.user):
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    try:
+        profile = Profile.objects.get(user__pk=user_id)
+    except Profile.DoesNotExist:
+        return JsonResponse({"error": "Profile not found"}, status=404)
+
+    chats = Chat.objects.filter(
+        Q(transaction__lender=profile) | Q(transaction__borrower=profile)
+    )
+
+    results = []
+    for chat in chats:
+        messages = chat.message_set.order_by("timestamp")
+        last_msg = messages.last()
+        transaction = chat.transaction
+        other = transaction.borrower if transaction.lender == profile else transaction.lender
+
+        results.append({
+            "id": chat.pk,
+            "name": f"{other.user.first_name} {other.user.last_name}",
+            "is_group": False,
+            "last_message": {
+                "content": last_msg.content if last_msg else "",
+                "timestamp": last_msg.timestamp.isoformat() if last_msg else None,
+            },
+            "unread": 0,
+        })
+
+    return JsonResponse(results, safe=False)
 
 
 @csrf_exempt
@@ -193,8 +236,8 @@ def signup_view(request):
         )
         
         #added in for admin testing w/ checkbox -E 
-        is_admin = request.POST.get("is_admin", "false")  
-        role = "admin" if is_admin.lower() == "true" else "neighbor"
+        is_admin_checkbox = request.POST.get("is_admin", "false")  
+        role = "admin" if is_admin_checkbox.lower() == "true" else "neighbor"
         
         
         profile = Profile.objects.create(
@@ -831,19 +874,6 @@ def lend_item_detail(request, id):
     if request.method == "DELETE":
         item.delete()
         return JsonResponse({"deleted": True})
-
-@api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
-def admin_remove_listing(request, listing_id):
-    if not is_admin(request.user):
-        return JsonResponse({"error": "Unauthorized"}, status=403)
-    
-    try:
-        listing = Listing.objects.get(pk=listing_id)
-        listing.delete()
-        return JsonResponse({"success": True})
-    except Listing.DoesNotExist:
-        return JsonResponse({"error": "Listing not found"}, status=404)
 
 
 @api_view(["GET", "POST", "PUT", "DELETE"])
