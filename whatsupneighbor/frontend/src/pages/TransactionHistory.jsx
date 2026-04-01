@@ -1,11 +1,30 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
 import backArrow from "../assets/leftpoint.png";
 
 export default function TransactionHistory() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const token = localStorage.getItem("accessToken");
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchTransactions() {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/main/members/${id}/transactions/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setTransactions(data.results || []);
+      } catch (err) {
+        console.error("Failed to fetch transactions:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTransactions();
+  }, [id, token]);
 
   return (
     <div className="tx-page">
@@ -18,11 +37,27 @@ export default function TransactionHistory() {
       </header>
 
       <div className="tx-page__content">
-        <p className="tx-page__subtitle">Member: {id}</p> 
-
-        <div className="tx-page__empty">
-          No transactions to show (placeholder).
-        </div>
+        {loading ? (
+          <p>Loading...</p>
+        ) : transactions.length === 0 ? (
+          <div className="tx-page__empty">No transactions yet.</div>
+        ) : (
+          transactions.map((t) => (
+            <div key={t.id} style={{
+              background: "#f9f9f9",
+              borderRadius: "12px",
+              padding: "16px",
+              marginBottom: "12px",
+              borderLeft: `4px solid ${t.status === "completed" ? "#4caf50" : "#ff6b6b"}`,
+            }}>
+              <p><b>📦 {t.item}</b></p>
+              <p><b>Lender:</b> {t.lender}</p>
+              <p><b>Borrower:</b> {t.borrower}</p>
+              <p><b>Dates:</b> {t.start_date ? new Date(t.start_date).toLocaleDateString() : "N/A"} – {t.end_date ? new Date(t.end_date).toLocaleDateString() : "N/A"}</p>
+              <p><b>Status:</b> {t.status === "completed" ? "✅ Completed" : "❌ Declined"}</p>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

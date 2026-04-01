@@ -26,6 +26,7 @@ urlpatterns = [
     path("api/get_nearest_neighborhood/", views.find_nearest_neighborhood),
     path("admin/users/<int:user_id>/chats/", views.admin_user_chats, name="admin-user-chats"),
     path("messages/check/", views.check_existing_chat),
+    path("members/<int:user_id>/transactions/", views.transaction_history_view),
     path(
         "listings/<int:listing_id>/favorite/",
         views.toggle_saved_listing,

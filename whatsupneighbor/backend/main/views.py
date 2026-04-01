@@ -46,6 +46,33 @@ def test(request):
     print("done")
     return render({"created_events": "Created Events"})
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def transaction_history_view(request, user_id):
+    try:
+        profile = Profile.objects.get(user__pk=user_id)
+    except Profile.DoesNotExist:
+        return JsonResponse({"error": "User not found"}, status=404)
+
+    transactions = Transaction.objects.filter(
+        Q(lender=profile) | Q(borrower=profile),
+        status="completed"
+    ).select_related("listing", "lender__user", "borrower__user")
+
+    results = []
+    for t in transactions:
+        results.append({
+            "id": t.pk,
+            "item": t.listing.item.name if t.listing.item else t.listing.title,
+            "lender": t.lender.user.get_full_name(),
+            "borrower": t.borrower.user.get_full_name(),
+            "start_date": t.start_date.isoformat() if t.start_date else None,
+            "end_date": t.end_date.isoformat() if t.end_date else None,
+            "status": t.status,
+        })
+
+    return JsonResponse({"results": results})
+
 #new
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
