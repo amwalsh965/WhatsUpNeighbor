@@ -28,7 +28,7 @@ export default function BorrowPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          listing_id: selectedlisting.id,
+          listing_id: selectedlisting.listing_id,
           message: message,
         }),
       });
@@ -151,15 +151,15 @@ export default function BorrowPage() {
       <h2 className="section-title">Available Listings</h2>
       <div className="lend-grid">
         {listings.slice(0, visibleListings).map((listing) => {
-          const isFav = favorites.includes(listing.id);
+          const isFav = favorites.includes(listing.item_id);
           return (
-            <div key={listing.id} className="lend-card">
+            <div key={listing.item_id} className="lend-card">
               <button
                 type="button"
                 className={`favorite-btn ${isFav ? "active" : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleFavorite(listing.id);
+                  toggleFavorite(listing.item_id);
                 }}
               >
                 {isFav ? "❤️" : "🤍"}

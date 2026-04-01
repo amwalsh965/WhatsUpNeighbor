@@ -55,7 +55,7 @@ urlpatterns = [
     ),
     path("chats/<int:chat_id>/", views.chat_detail_view, name="chat_detail"),
     path("messages/start/", views.start_chat_view),
-    path("messages/start/", views.start_borrow_request, name="start-borrow-request"),
+    # path("messages/start/", views.start_borrow_request, name="start-borrow-request"),
     path(
         "transactions/<int:transaction_id>/approve/",
         views.approve_borrow_request,

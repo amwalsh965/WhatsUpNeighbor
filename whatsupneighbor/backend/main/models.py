@@ -7,6 +7,7 @@ class Status(models.TextChoices):
     OPEN = "open", "Open"
     IN_PROGRESS = "in_progress", "In Progress"
     COMPLETED = "completed", "Completed"
+    CLOSED = "closed", "Closed"
 
 
 class TrustFeedback(models.Model):
@@ -167,6 +168,9 @@ class Message(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
     sender = models.ForeignKey(Profile, on_delete=models.CASCADE)
     content = models.TextField()
+    transaction = models.ForeignKey(
+        Transaction, null=True, blank=True, on_delete=models.CASCADE
+    )
     timestamp = models.DateTimeField()
 
     def __str__(self):

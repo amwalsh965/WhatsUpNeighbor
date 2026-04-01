@@ -827,21 +827,21 @@ def lend_item_detail(request, id):
 @permission_classes([IsAuthenticated])
 def get_listings(request):
 
-    items = Item.objects.all()
-
+    listings = Listing.objects.all()
     results = []
 
-    for item in items:
+    for listing in listings:
 
         results.append(
             {
-                "id": item.id,
-                "name": item.name,
-                "category": item.category,
-                "status": item.status,
-                "description": item.description,
-                "owner": "Unknown",
-                "photo": item.photo.url if item.photo else None,
+                "listing_id": listing.pk,
+                "item_id": listing.item.id,
+                "name": listing.item.name,
+                "category": listing.item.category,
+                "status": listing.item.status,
+                "description": listing.item.description,
+                "owner": f"{listing.user.user.first_name} {listing.user.user.last_name}",
+                "photo": listing.item.photo.url if listing.item.photo else None,
             }
         )
 
@@ -949,6 +949,7 @@ def chat_detail_view(request, chat_id):
     transaction_data = None
     if hasattr(chat, "transaction") and chat.transaction is not None:
         t = chat.transaction
+        listing = t.listing
         transaction_data = {
             "id": t.id,
             "status": t.status,
@@ -973,6 +974,15 @@ def chat_detail_view(request, chat_id):
                 for m in messages
             ],
             "transaction": transaction_data,
+            "listing": {
+                "id": listing.item.id,
+                "name": listing.item.name,
+                "category": listing.item.category,
+                "status": listing.item.status,
+                "description": listing.item.description,
+                "owner": f"{listing.user.user.first_name} {listing.user.user.last_name}",
+                "photo": listing.item.photo.url if listing.item.photo else None,
+            },
         }
     )
 
@@ -1002,12 +1012,12 @@ def start_chat_view(request):
             lender=lender,
             start_date=timezone.now(),
             end_date=timezone.now(),
-            status="pending",
+            status="open",
         )
 
     chat, created = Chat.objects.get_or_create(
         transaction=transaction,
-        defaults={"status": "pending"},
+        defaults={"status": "open"},
     )
 
     if message:
@@ -1203,6 +1213,7 @@ def get_saved_listings(request):
                 saved.listing.item.photo.url if saved.listing.item.photo else None
             ),
             "saved_at": saved.saved_At,
+            "owner": f"{saved.listing.user.user.first_name} {saved.listing.user.user.last_name}",
         }
         for saved in saved_listings
     ]
@@ -1237,39 +1248,39 @@ def my_borrowed_items_view(request):
     return JsonResponse(results, safe=False)
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def start_borrow_request(request):
-    profile = request.user.profile
-    data = request.data
-    listing_id = data.get("listing_id")
-    message = data.get("message", "").strip()
+# @api_view(["POST"])
+# @permission_classes([IsAuthenticated])
+# def start_borrow_request(request):
+#     profile = request.user.profile
+#     data = request.data
+#     listing_id = data.get("listing_id")
+#     message = data.get("message", "").strip()
 
-    try:
-        listing = Listing.objects.get(pk=listing_id)
-    except Listing.DoesNotExist:
-        return JsonResponse({"error": "Listing not found"}, status=404)
+#     try:
+#         listing = Listing.objects.get(pk=listing_id)
+#     except Listing.DoesNotExist:
+#         return JsonResponse({"error": "Listing not found"}, status=404)
 
-    if listing.owner == profile:
-        return JsonResponse({"error": "Cannot borrow your own listing"}, status=400)
+#     if listing.owner == profile:
+#         return JsonResponse({"error": "Cannot borrow your own listing"}, status=400)
 
-    transaction = Transaction.objects.create(
-        listing=listing,
-        lender=listing.owner,
-        borrower=profile,
-        start_date=timezone.now(),
-        end_date=timezone.now() + timezone.timedelta(days=7),
-        status="open",
-    )
+#     transaction = Transaction.objects.create(
+#         listing=listing,
+#         lender=listing.owner,
+#         borrower=profile,
+#         start_date=timezone.now(),
+#         end_date=timezone.now() + timezone.timedelta(days=7),
+#         status="open",
+#     )
 
-    chat = Chat.objects.create(transaction=transaction, status="active")
+#     chat = Chat.objects.create(transaction=transaction, status="active")
 
-    if message:
-        Message.objects.create(
-            chat=chat, sender=profile, content=message, timestamp=timezone.now()
-        )
+#     if message:
+#         Message.objects.create(
+#             chat=chat, sender=profile, content=message, timestamp=timezone.now()
+#         )
 
-    return JsonResponse({"transaction_id": transaction.pk, "chat_id": chat.pk})
+#     return JsonResponse({"transaction_id": transaction.pk, "chat_id": chat.pk})
 
 
 @api_view(["POST"])
@@ -1336,6 +1347,8 @@ def create_trust_feedback(request, transaction_id):
         item_condition=data.get("item_condition", "good"),
         rating_score=data.get("rating_score", 5),
     )
+    transaction.status = "closed"
+    transaction.save()
 
     calc_trust_fields(borrower)
 
