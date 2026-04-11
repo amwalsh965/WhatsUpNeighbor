@@ -16,6 +16,8 @@ import TransactionHistory from "./pages/TransactionHistory";
 import SearchMember from "./pages/SearchMember";
 import ViewProfile from "./pages/ViewProfile";
 import DMPage from "./pages/DMPage";
+
+import AdminTrustFeedbackPage from "./pages/AdminTrustFeedbackPage";
 import AdminUserChatsPage from "./pages/AdminUserChatsPage";
 
 function App() {
@@ -41,6 +43,7 @@ function App() {
         <Route path="/listing-details/:id" element={<ProtectedRoute><ListingDetailsPage /></ProtectedRoute>} />
         <Route path="/chats/:id" element={<ProtectedRoute><DMPage /></ProtectedRoute>} />
         <Route path="/admin/users/:id/chats" element={<ProtectedRoute><AdminUserChatsPage /></ProtectedRoute>} />
+        <Route path="/admin/users/:id/trust-feedback" element={<ProtectedRoute><AdminTrustFeedbackPage /></ProtectedRoute>} />
       </Routes>
     </Router>
   );

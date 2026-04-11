@@ -10,7 +10,7 @@ export default function MessagesPage() {
   const token = localStorage.getItem("accessToken");
   const navigate = useNavigate();
 
-  const [tab, setTab] = useState("pending");
+  const [tab, setTab] = useState("open");
   const [search, setSearch] = useState("");
   const [chats, setChats] = useState([]);
   const [error, setError] = useState("");
@@ -40,7 +40,7 @@ export default function MessagesPage() {
     .sort((a, b) => new Date(b.last_message?.timestamp) - new Date(a.last_message?.timestamp));
 
 
-  const pendingChats = filteredChats.filter(c => c.status === "pending");
+  const pendingChats = filteredChats.filter(c => c.status === "open");
   const activeChats = filteredChats.filter(c => c.status === "active");
   const closedChats = filteredChats.filter(c => c.status === "archived");
 
@@ -78,8 +78,8 @@ export default function MessagesPage() {
      <div className="messages-tabs"style={{ marginBottom: "16px" }}>
       
   <button
-    onClick={() => setTab("pending")}
-    style={{ fontWeight: tab === "pending" ? "bold" : "normal" }}
+    onClick={() => setTab("open")}
+    style={{ fontWeight: tab === "open" ? "bold" : "normal" }}
   >
     Pending
   </button>
@@ -98,7 +98,7 @@ export default function MessagesPage() {
 </div>
 
 <div className="message-list">
-  {(tab === "pending" ? pendingChats : tab === "active" ? activeChats : closedChats).map((chat) => (
+  {(tab === "open" ? pendingChats : tab === "active" ? activeChats : closedChats).map((chat) => (
     <ChatThread
       key={chat.id}
       chat={chat}

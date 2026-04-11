@@ -28,6 +28,7 @@ export default function BorrowPage() {
   };
 
   const handleRequestClick = async (listing) => {
+    console.log(listing);
   try {
     const res = await fetch(`http://127.0.0.1:8000/main/messages/check/?listing_id=${listing.id}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -54,6 +55,7 @@ export default function BorrowPage() {
       const message = document.querySelector("textarea").value.trim();
       if (!message) return;
 
+      console.log(selectedlisting.id)
       const res = await fetch("http://127.0.0.1:8000/main/messages/start/", {
         method: "POST",
         headers: {
@@ -61,7 +63,7 @@ export default function BorrowPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          listing_id: selectedlisting.listing_id,
+          listing_id: selectedlisting.id,
           message: message,
         }),
       });

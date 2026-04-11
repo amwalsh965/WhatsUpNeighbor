@@ -28,10 +28,11 @@ import requests
 from assets.scripts.create_events import create_events
 from assets.scripts.sample_date import import_all_sample_data, create_points
 
-#new
+
+# new
 def is_admin(user):
     try:
-        return Profile.objects.get(user=user).role == 'admin'
+        return Profile.objects.get(user=user).role == "admin"
     except Profile.DoesNotExist:
         return False
 
@@ -45,6 +46,7 @@ def test(request):
     print("done")
     return render({"created_events": "Created Events"})
 
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def transaction_history_view(request, user_id):
@@ -54,25 +56,92 @@ def transaction_history_view(request, user_id):
         return JsonResponse({"error": "User not found"}, status=404)
 
     transactions = Transaction.objects.filter(
-        Q(lender=profile) | Q(borrower=profile),
-        status="completed"
+        Q(lender=profile) | Q(borrower=profile), status="completed"
     ).select_related("listing", "lender__user", "borrower__user")
 
     results = []
     for t in transactions:
-        results.append({
-            "id": t.pk,
-            "item": t.listing.item.name if t.listing.item else t.listing.title,
-            "lender": t.lender.user.get_full_name(),
-            "borrower": t.borrower.user.get_full_name(),
-            "start_date": t.start_date.isoformat() if t.start_date else None,
-            "end_date": t.end_date.isoformat() if t.end_date else None,
-            "status": t.status,
-        })
+        results.append(
+            {
+                "id": t.pk,
+                "item": t.listing.item.name if t.listing.item else t.listing.title,
+                "lender": t.lender.user.get_full_name(),
+                "borrower": t.borrower.user.get_full_name(),
+                "start_date": t.start_date.isoformat() if t.start_date else None,
+                "end_date": t.end_date.isoformat() if t.end_date else None,
+                "status": t.status,
+            }
+        )
 
     return JsonResponse({"results": results})
 
-#new
+
+@api_view(["GET", "PUT"])
+@permission_classes([IsAuthenticated])
+def user_trust_feedback_view(request, user_id):
+    if not is_admin(request.user):
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    try:
+        profile = Profile.objects.get(user__pk=user_id)
+    except Profile.DoesNotExist:
+        return JsonResponse({"error": "User not found"}, status=404)
+
+    if request.method == "GET":
+        feedbacks = TrustFeedback.objects.filter(
+            Q(lender=profile) | Q(borrower=profile)
+        ).select_related("transaction__listing", "lender__user", "borrower__user")
+
+        results = []
+        for f in feedbacks:
+            results.append(
+                {
+                    "id": f.pk,
+                    "transaction_id": f.transaction_id,
+                    "lender": f.lender.user.get_full_name(),
+                    "borrower": f.borrower.user.get_full_name(),
+                    "item": (
+                        f.transaction.listing.title
+                        if f.transaction and f.transaction.listing
+                        else None
+                    ),
+                    "item_returned": f.item_returned,
+                    "return_timeliness": f.return_timeliness,
+                    "item_condition": f.item_condition,
+                    "rating_score": f.rating_score,
+                    "timestamp": f.timestamp.isoformat(),
+                }
+            )
+
+        return JsonResponse({"results": results})
+
+    # PUT → update feedback
+    elif request.method == "PUT":
+        feedback_id = request.data.get("id")
+
+        try:
+            feedback = TrustFeedback.objects.get(pk=feedback_id)
+        except TrustFeedback.DoesNotExist:
+            return JsonResponse({"error": "Feedback not found"}, status=404)
+
+        # Update fields if provided
+        feedback.item_returned = request.data.get(
+            "item_returned", feedback.item_returned
+        )
+        feedback.return_timeliness = request.data.get(
+            "return_timeliness", feedback.return_timeliness
+        )
+        feedback.item_condition = request.data.get(
+            "item_condition", feedback.item_condition
+        )
+        feedback.rating_score = request.data.get("rating_score", feedback.rating_score)
+
+        feedback.save()
+
+        return JsonResponse({"success": True})
+
+
+# new
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def admin_user_chats(request, user_id):
@@ -93,18 +162,24 @@ def admin_user_chats(request, user_id):
         messages = chat.message_set.order_by("timestamp")
         last_msg = messages.last()
         transaction = chat.transaction
-        other = transaction.borrower if transaction.lender == profile else transaction.lender
+        other = (
+            transaction.borrower
+            if transaction.lender == profile
+            else transaction.lender
+        )
 
-        results.append({
-            "id": chat.pk,
-            "name": f"{other.user.first_name} {other.user.last_name}",
-            "is_group": False,
-            "last_message": {
-                "content": last_msg.content if last_msg else "",
-                "timestamp": last_msg.timestamp.isoformat() if last_msg else None,
-            },
-            "unread": 0,
-        })
+        results.append(
+            {
+                "id": chat.pk,
+                "name": f"{other.user.first_name} {other.user.last_name}",
+                "is_group": False,
+                "last_message": {
+                    "content": last_msg.content if last_msg else "",
+                    "timestamp": last_msg.timestamp.isoformat() if last_msg else None,
+                },
+                "unread": 0,
+            }
+        )
 
     return JsonResponse(results, safe=False)
 
@@ -260,16 +335,15 @@ def signup_view(request):
             last_name=last_name,
             email=email,
         )
-        
-        #added in for admin testing w/ checkbox -E 
-        is_admin_checkbox = request.POST.get("is_admin", "false")  
+
+        # added in for admin testing w/ checkbox -E
+        is_admin_checkbox = request.POST.get("is_admin", "false")
         role = "admin" if is_admin_checkbox.lower() == "true" else "neighbor"
-        
-        
+
         profile = Profile.objects.create(
             user=user,
             neighborhood=neighborhood,
-            role=role, #changed for admin -E
+            role=role,  # changed for admin -E
             bio=bio,
             address=address,
             website=website,
@@ -284,13 +358,15 @@ def signup_view(request):
 
         user = authenticate(username=username, password=password)
         refresh = RefreshToken.for_user(user)
-        profile = Profile.objects.get(user=user) #added to retrieve role for response -E
+        profile = Profile.objects.get(
+            user=user
+        )  # added to retrieve role for response -E
 
         return JsonResponse(
             {
                 "success": True,
                 "username": user.username,
-                "role": profile.role, # testing -E
+                "role": profile.role,  # testing -E
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
             }
@@ -336,7 +412,6 @@ def profile_views(request, profile_id=None):
     else:
         return JsonResponse({"error": "Profile ID required"}, status=400)
 
-     
     if request.method == "GET":
 
         listings = Listing.objects.filter(user=profile)
@@ -374,9 +449,9 @@ def profile_views(request, profile_id=None):
             None if profile.photo is None or profile.photo == "" else profile.photo.url
         )
         data["rating"] = profile.trust_rating
+        data["role"] = profile.role
 
         return JsonResponse(data)
-
 
     elif request.method == "PUT":
         # Use FormData: text comes in request.POST, file in request.FILES
@@ -624,6 +699,7 @@ def user_events_view(request):
             title = request.POST.get("title")
             date = request.POST.get("date")
             description = request.POST.get("description")
+            print(request.POST)
             address = Address.objects.get(pk=request.POST.get("address"))
             photo = ""
 
@@ -876,6 +952,7 @@ def user_lend_views(request, pk=None):
         except Item.DoesNotExist:
             return JsonResponse({"error": "Item not found"}, status=404)
 
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def decline_chat_view(request, chat_id):
@@ -895,17 +972,19 @@ def decline_chat_view(request, chat_id):
 
     borrower_name = f"{chat.transaction.borrower.user.first_name} {chat.transaction.borrower.user.last_name}"
     lender_name = f"{profile.user.first_name} {profile.user.last_name}"
-    listing_name = chat.transaction.listing.item.name if chat.transaction.listing.item else chat.transaction.listing.title
+    listing_name = (
+        chat.transaction.listing.item.name
+        if chat.transaction.listing.item
+        else chat.transaction.listing.title
+    )
     Message.objects.create(
-    chat=chat,
-    sender=profile,
-    content=f"{lender_name} has declined {borrower_name}'s request for '{listing_name}'.",
-    timestamp=timezone.now(),
-)
+        chat=chat,
+        sender=profile,
+        content=f"{lender_name} has declined {borrower_name}'s request for '{listing_name}'.",
+        timestamp=timezone.now(),
+    )
 
     return JsonResponse({"success": True})
-
-
 
 
 @api_view(["GET", "POST", "PUT", "DELETE"])
@@ -932,11 +1011,12 @@ def lend_item_detail(request, id):
         item.delete()
         return JsonResponse({"deleted": True})
 
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def pending_requests_view(request):
     profile = Profile.objects.get(user__username=request.user)
-    count = Transaction.objects.filter(lender=profile, status="pending").count()
+    count = Transaction.objects.filter(lender=profile, status="open").count()
     return JsonResponse({"count": count})
 
 
@@ -959,8 +1039,16 @@ def get_listings(request):
                 "description": item.description,
                 "owner": listing.user.user.get_full_name() if listing else "Unknown",
                 "photo": item.photo.url if item.photo else None,
-                "start_date": listing.start_date.isoformat() if listing and listing.start_date else None,
-                "end_date": listing.end_date.isoformat() if listing and listing.end_date else None,
+                "start_date": (
+                    listing.start_date.isoformat()
+                    if listing and listing.start_date
+                    else None
+                ),
+                "end_date": (
+                    listing.end_date.isoformat()
+                    if listing and listing.end_date
+                    else None
+                ),
             }
         )
 
@@ -1080,22 +1168,22 @@ def chat_detail_view(request, chat_id):
         }
 
     return JsonResponse(
-    {
-        "id": chat.pk,
-        "status": chat.status,  # add this
-        "name": chat_name,
-        "is_group": False,
-        "messages": [
-            {
-                "id": m.pk,
-                "from": m.sender.user.username,
-                "text": m.content,
-                "timestamp": m.timestamp.isoformat(),
-            }
-            for m in messages
-        ],
-        "transaction": transaction_data,
-	"listing": {
+        {
+            "id": chat.pk,
+            "status": chat.status,  # add this
+            "name": chat_name,
+            "is_group": False,
+            "messages": [
+                {
+                    "id": m.pk,
+                    "from": m.sender.user.username,
+                    "text": m.content,
+                    "timestamp": m.timestamp.isoformat(),
+                }
+                for m in messages
+            ],
+            "transaction": transaction_data,
+            "listing": {
                 "id": listing.item.id,
                 "name": listing.item.name,
                 "category": listing.item.category,
@@ -1104,8 +1192,9 @@ def chat_detail_view(request, chat_id):
                 "owner": f"{listing.user.user.first_name} {listing.user.user.last_name}",
                 "photo": listing.item.photo.url if listing.item.photo else None,
             },
-    }
-)
+        }
+    )
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -1123,17 +1212,21 @@ def check_existing_chat(request):
     ).first()
 
     if transaction:
-        chat = Chat.objects.filter(transaction=transaction).exclude(status="archived").first()
+        chat = (
+            Chat.objects.filter(transaction=transaction)
+            .exclude(status="archived")
+            .first()
+        )
         if chat:
             return JsonResponse({"exists": True, "chat_id": chat.pk})
 
     return JsonResponse({"exists": False})
 
 
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def start_chat_view(request):
+    print(request.data)
     borrower = Profile.objects.get(user__username=request.user)
     listing_id = request.data.get("listing_id")
     message = request.data.get("message", "").strip()
@@ -1174,15 +1267,17 @@ def start_chat_view(request):
         item_name = listing.item.name if listing.item else listing.title
         borrower_name = f"{borrower.user.first_name} {borrower.user.last_name}"
         lender_name = f"{lender.user.first_name} {lender.user.last_name}"
-        start = listing.start_date.strftime("%b %d, %Y") if listing.start_date else "N/A"
+        start = (
+            listing.start_date.strftime("%b %d, %Y") if listing.start_date else "N/A"
+        )
         end = listing.end_date.strftime("%b %d, %Y") if listing.end_date else "N/A"
         system_message = f"{borrower_name} has requested to borrow '{item_name}' from {lender_name}. Available: {start} – {end}."
         Message.objects.create(
-        chat=chat,
-        sender=borrower,
-        content=system_message,
-        timestamp=timezone.now(),
-    )
+            chat=chat,
+            sender=borrower,
+            content=system_message,
+            timestamp=timezone.now(),
+        )
 
     if message:
         Message.objects.create(
@@ -1215,12 +1310,6 @@ def complete_transaction(request, transaction_id):
     return JsonResponse({"status": "completed"})
 
 
-@api_view(["GET", "POST", "PUT", "DELETE"])
-@permission_classes([IsAuthenticated])
-def admin_views(request):
-    pass
-
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def start_transaction_view(request, chat_id):
@@ -1234,8 +1323,14 @@ def start_transaction_view(request, chat_id):
 
     transaction = chat.transaction
     transaction.status = "in_progress"
-    transaction.start_date = datetime.strptime(start_date, "%Y-%m-%d") if start_date else timezone.now()
-    transaction.end_date = datetime.strptime(end_date, "%Y-%m-%d") if end_date else timezone.now() + timedelta(days=7)
+    transaction.start_date = (
+        datetime.strptime(start_date, "%Y-%m-%d") if start_date else timezone.now()
+    )
+    transaction.end_date = (
+        datetime.strptime(end_date, "%Y-%m-%d")
+        if end_date
+        else timezone.now() + timedelta(days=7)
+    )
     transaction.save()
 
     chat.status = "active"

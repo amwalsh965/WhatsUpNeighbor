@@ -563,13 +563,13 @@ def import_all_sample_data():
     chat3 = Chat.objects.create(
         transaction=transaction3,
         chat_creation=timezone.now(),
-        status="pending",
+        status="open",
     )
 
     chat4 = Chat.objects.create(
         transaction=transaction4,
         chat_creation=timezone.now(),
-        status="pending",
+        status="open",
     )
 
     chat5 = Chat.objects.create(

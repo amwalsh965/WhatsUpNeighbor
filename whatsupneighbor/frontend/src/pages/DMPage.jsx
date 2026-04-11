@@ -247,7 +247,7 @@ export default function DMPage() {
 )}
 
       <div className="transaction-actions">
-  {transaction?.status === "pending" && isLender && (
+  {transaction?.status === "open" && isLender && (
   <>
     <button onClick={() => setShowDateModal(true)}>✅ Accept Request</button>
     <button onClick={async () => {

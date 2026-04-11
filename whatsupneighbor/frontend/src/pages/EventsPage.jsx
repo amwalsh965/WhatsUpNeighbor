@@ -328,7 +328,7 @@ useEffect(() => {
       title: event.title,
       date: event.date,
       description: event.description,
-      address: "",
+      address: event.address,
       photo: null
     });
 
@@ -526,7 +526,7 @@ useEffect(() => {
           />
         ))}
       </div>
-      {eventsToRenderRaw.length > visibleEvents && (
+      {(
         <div style={{ textAlign: "center", margin: "20px 0" }}>
           <button
             className="primary-btn"

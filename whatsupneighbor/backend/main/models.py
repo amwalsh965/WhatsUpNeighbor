@@ -151,13 +151,13 @@ class Chat(models.Model):
 
     class ChatStatus(models.TextChoices):
         ACTIVE = "active", "Active"
-        PENDING = "pending", "Pending"
+        OPEN = "open", "Open"
         ARCHIVED = "archived", "Archived"
 
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     chat_creation = models.DateTimeField(auto_now=True)
     status = models.CharField(
-        max_length=8, choices=ChatStatus.choices, default=ChatStatus.PENDING
+        max_length=8, choices=ChatStatus.choices, default=ChatStatus.OPEN
     )
 
     def __str__(self):

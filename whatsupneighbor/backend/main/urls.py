@@ -24,9 +24,14 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/get_nearest_neighborhood/", views.find_nearest_neighborhood),
-    path("admin/users/<int:user_id>/chats/", views.admin_user_chats, name="admin-user-chats"),
+    path(
+        "admin/users/<int:user_id>/chats/",
+        views.admin_user_chats,
+        name="admin-user-chats",
+    ),
     path("messages/check/", views.check_existing_chat),
     path("members/<int:user_id>/transactions/", views.transaction_history_view),
+    path("admin/users/<int:user_id>/trust-feedback/", views.user_trust_feedback_view),
     path(
         "listings/<int:listing_id>/favorite/",
         views.toggle_saved_listing,
